@@ -8,17 +8,17 @@ Install SpecFlow for Codex at user scope from this exact release with either
 supported installer:
 
 ```bash
-gh skill install ztalkai/spec-flow-skill specflow@skill-v0.1.11 --agent codex --scope user
-npx --yes skills@1.5.23 add https://github.com/ztalkai/spec-flow-skill/tree/skill-v0.1.11/skills/specflow --global --agent codex --yes
+gh skill install ztalkai/spec-flow-skill specflow@skill-v0.1.12 --agent codex --scope user
+npx --yes skills@1.5.23 add https://github.com/ztalkai/spec-flow-skill/tree/skill-v0.1.12/skills/specflow --global --agent codex --yes
 ```
 
 Install the same release for Claude Code at user scope:
 
 ```bash
-gh skill install ztalkai/spec-flow-skill specflow@skill-v0.1.11 --agent claude-code --scope user
-npx --yes skills@1.5.23 add https://github.com/ztalkai/spec-flow-skill/tree/skill-v0.1.11/skills/specflow --global --agent claude-code --yes
+gh skill install ztalkai/spec-flow-skill specflow@skill-v0.1.12 --agent claude-code --scope user
+npx --yes skills@1.5.23 add https://github.com/ztalkai/spec-flow-skill/tree/skill-v0.1.12/skills/specflow --global --agent claude-code --yes
 ```
 
-Source: `ztalkai/spec-flow@275baac74e66d248e8e69b7d18618f9f9cb9936f`
+Source: `ztalkai/spec-flow@52ea1fb4c7f4d3981a91dfd14c3d973c7d1895c6`
 
-Release: `skill-v0.1.11`
+Release: `skill-v0.1.12`

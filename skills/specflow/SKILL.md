@@ -1,7 +1,7 @@
 ---
 name: specflow
 description: Author and govern authoritative Specs and the Project Glossary through the supported SpecFlow CLI.
-compatible-cli: "@ztalkai/spec-flow-cli@0.1.2"
+compatible-cli: "@ztalkai/spec-flow-cli@0.1.3"
 ---
 
 # SpecFlow
@@ -19,16 +19,16 @@ authentication or resource command, check whether `specflow` is installed and, w
 it is, run `specflow --version`.
 
 - If `specflow` is not installed, run only this exact installation command. If
-  installation fails, stop. Then run `specflow --version` again and require `0.1.2`:
+  installation fails, stop. Then run `specflow --version` again and require `0.1.3`:
 
 ```bash
-npm install --global @ztalkai/spec-flow-cli@0.1.2
+npm install --global @ztalkai/spec-flow-cli@0.1.3
 ```
 
 - If the installed version is different, stop and show the User that exact install
   command as the repair command. Do not run that repair command automatically or
   silently upgrade or downgrade an existing global installation.
-- If the installed version is `0.1.2`, continue without running the install command or
+- If the installed version is `0.1.3`, continue without running the install command or
   changing global state.
 - Do not replace the pinned version with `latest`, a raw HTTP command, or a private
   copy. Do not update the Skill or CLI automatically.
@@ -172,6 +172,18 @@ in input and expected output data, put them in one `Scenario Outline` and `Examp
 table instead of parallel Scenarios. Use `Background` only for short, incidental
 context shared by several Scenarios; keep business policy in Rules and Examples.
 
+Every Scenario and Scenario Outline carries a stable Spec-scoped Scenario ID Tag such
+as `@PAY-123-4` that SpecFlow assigns, never the Agent. When editing a Working Draft,
+preserve each existing Scenario ID Tag verbatim: never invent, renumber, reorder, or
+hand-assign Scenario IDs, and never put test-case-document numbering into Scenario
+titles. Keep the Tag when reordering or editing a Scenario inside the same Spec; when
+copying a Scenario from another Spec, remove its Scenario ID Tags before saving so
+assignment issues fresh IDs. After editing and before Publish, run
+`specflow spec assign-scenario-ids --project-id <project-id> --spec-id <spec-id>`
+to fill missing IDs and repair invalid, duplicate, or foreign ones while leaving
+valid IDs and unrelated Tags unchanged. Refer to scenarios by their Scenario ID in
+questions, findings, and reports.
+
 Ask the smallest focused Question before editing only when a missing goal, acting
 authority, or business policy prevents a correct Spec boundary, Rule, or observable
 outcome without choosing among plausible answers. Otherwise continue directly without
@@ -208,7 +220,14 @@ Handle the final `error.reason` exactly:
 - `Resource Changed`: reread the resource before deliberately reapplying the User's
   intent with its new opaque version.
 - `Invalid Operation`: correct the domain input; never auto-restore, auto-publish, or
-  bypass the stated rule.
+  bypass the stated rule. When `error.diagnostics` is present, each entry names the
+  `reason`, `message`, and the `line`/`column` of one problem in the Gherkin
+  source. For `scenario-id-*` reasons on Spec Publish, run `specflow spec
+  assign-scenario-ids --project-id <project-id> --spec-id <spec-id>` to repair the
+  Working Draft, then retry the Publish. For `scenario-id-*` reasons on Spec
+  Rollback, the stored Revision cannot be repaired in place: read its source, save
+  it to the Working Draft, run `specflow spec assign-scenario-ids`, and Publish
+  instead. Never hand-edit Scenario ID Tags; assignment is the only repair path.
 - `Temporary Failure`: retry only when `retryable` is true, and honor `retryAfter` when
   present.
 

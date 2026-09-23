@@ -1,7 +1,7 @@
 ---
 name: specflow
 description: Author and govern authoritative Specs and the Project Glossary through the supported SpecFlow CLI.
-compatible-cli: "@ztalkai/spec-flow-cli@0.1.3"
+compatible-cli: "@ztalkai/spec-flow-cli@0.1.4"
 ---
 
 # SpecFlow
@@ -19,16 +19,16 @@ authentication or resource command, check whether `specflow` is installed and, w
 it is, run `specflow --version`.
 
 - If `specflow` is not installed, run only this exact installation command. If
-  installation fails, stop. Then run `specflow --version` again and require `0.1.3`:
+  installation fails, stop. Then run `specflow --version` again and require `0.1.4`:
 
 ```bash
-npm install --global @ztalkai/spec-flow-cli@0.1.3
+npm install --global @ztalkai/spec-flow-cli@0.1.4
 ```
 
 - If the installed version is different, stop and show the User that exact install
   command as the repair command. Do not run that repair command automatically or
   silently upgrade or downgrade an existing global installation.
-- If the installed version is `0.1.3`, continue without running the install command or
+- If the installed version is `0.1.4`, continue without running the install command or
   changing global state.
 - Do not replace the pinned version with `latest`, a raw HTTP command, or a private
   copy. Do not update the Skill or CLI automatically.
@@ -36,12 +36,12 @@ npm install --global @ztalkai/spec-flow-cli@0.1.3
 Installing the Skill or CLI never starts authentication. Device Authorization remains
 a separate, explicit User operation when SpecFlow access is actually needed.
 
-Set the service origin once and use that same origin for authentication and every
+The CLI uses its built-in public origin. Pass `--server <origin>` only when the User
+names a different SpecFlow origin, and use that same flag on authentication and every
 resource command:
 
 ```bash
-export SPEC_FLOW_API_URL="https://specflow.example"
-specflow --server "$SPEC_FLOW_API_URL" auth login
+specflow auth login
 specflow project list
 ```
 
@@ -59,9 +59,11 @@ identity or request an Agent grant.
   whichever is not supplied, then run `specflow project create --name <name>
   --project-id <id> --gherkin-language <code>` with a Gherkin dialect code such as
   `en` or `zh-CN`.
-- Archive or Restore only when the User's task requires that lifecycle change. Pass
-  the opaque version returned by Project discovery or context, and reread deliberately
-  after `Resource Changed` or an ambiguous transport outcome.
+- Archive, Trash, or Restore only when the User's task requires that lifecycle
+  change. Pass the opaque version returned by Project discovery or context, and
+  reread deliberately after `Resource Changed` or an ambiguous transport outcome.
+  A Trashed Project surfaces only to an Admin through `project list --status
+  Trashed`, and Restore always lands it on Archived — never directly on Active.
 - Use the singular resource commands shown by `specflow --help`. Success is one JSON
   object on stdout. Diagnostics and the final Skill Error are NDJSON on stderr.
 - Organize Capability and Spec resources, persist only bounded Source References, and

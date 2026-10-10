@@ -1,7 +1,7 @@
 ---
 name: specflow
 description: Author and govern authoritative Specs and the Project Glossary through the supported SpecFlow CLI.
-compatible-cli: "@ztalkai/spec-flow-cli@0.1.4"
+compatible-cli: "@ztalkai/spec-flow-cli@0.1.5"
 ---
 
 # SpecFlow
@@ -19,16 +19,16 @@ authentication or resource command, check whether `specflow` is installed and, w
 it is, run `specflow --version`.
 
 - If `specflow` is not installed, run only this exact installation command. If
-  installation fails, stop. Then run `specflow --version` again and require `0.1.4`:
+  installation fails, stop. Then run `specflow --version` again and require `0.1.5`:
 
 ```bash
-npm install --global @ztalkai/spec-flow-cli@0.1.4
+npm install --global @ztalkai/spec-flow-cli@0.1.5
 ```
 
 - If the installed version is different, stop and show the User that exact install
   command as the repair command. Do not run that repair command automatically or
   silently upgrade or downgrade an existing global installation.
-- If the installed version is `0.1.4`, continue without running the install command or
+- If the installed version is `0.1.5`, continue without running the install command or
   changing global state.
 - Do not replace the pinned version with `latest`, a raw HTTP command, or a private
   copy. Do not update the Skill or CLI automatically.
@@ -52,13 +52,64 @@ identity or request an Agent grant.
 
 ## Operating contract
 
+- Manage public Task sharing only when the User requests it. Read the independent
+  sharing version with `specflow project sharing read --project-id <id>`; use
+  `specflow project sharing set --project-id <id> --public true|false
+  --expected-version <version> --idempotency-key <uuid>` with an authorized CLI
+  Session. Retain the same key and intent after an uncertain response. A replay
+  reports the current switch and cannot reopen a Project another command closed.
+  Public sharing exposes Task fields and current description assets, and grants
+  no Workspace membership, Spec/Glossary, task-resource or comment-asset access.
+  Archive and Trash close sharing; Restore keeps it private until explicitly
+  enabled again. Project Read Tokens cannot manage sharing.
+
+- Read the current User's notification inbox with `notification list`. A target
+  never grants access: use the fresh target returned by `notification read
+  --notification-id <uuid> --idempotency-key <uuid>` before navigating. `notification
+  read-all` and `notification clear` require an explicit UUID command key and an
+  unrestricted CLI Session; clear only when the User requests it. Retain the key
+  after an ambiguous outcome so retrying cannot change newer entries. Read category
+  preferences with `notification preferences get`; update only requested fields
+  through `notification preferences update --expected-version <version> --preferences <json> --idempotency-key
+  <uuid>`. Project-scoped Sessions can read admitted targets, while Project Read
+  Tokens cannot access personal notifications. Do not claim scheduled reminders,
+  external delivery, or live Gateway push from this durable inbox.
+
+- When the User asks to associate a Task with supporting resources, use
+  `work-item resource-link list|add|remove` with explicit Project and Task identities.
+  A `spec` target uses its stable `--spec-id`, optionally `--spec-project-id`;
+  `document` and `other` targets use a User-authored name and HTTP/HTTPS locator.
+  Adds and removals take an explicit UUID command key; retain it after an ambiguous
+  outcome. Removal also takes the association's opaque expected version. Read
+  reverse Task references through `spec work-items`, following its cursor when
+  present. Both endpoints require current access in the same Workspace and Session
+  scope. A link records reference metadata and leaves Task completion, Spec
+  publication, and external content authorization independent.
+
 - Use `specflow project list` before choosing a Project; never infer a hidden current
-  Project.
-- Project Creation requires a User-chosen immutable ID of 2-10 letters and a
-  User-chosen Gherkin Language whose keywords every Spec in the Project uses. Ask for
-  whichever is not supplied, then run `specflow project create --name <name>
-  --project-id <id> --gherkin-language <code>` with a Gherkin dialect code such as
-  `en` or `zh-CN`.
+  Project. Every newly created Project belongs to exactly one owning Workspace, and
+  Workspace Membership is the only source of Project permissions.
+- Discover Workspaces with `specflow workspace list` and create one with `specflow
+  workspace create --name <name>` when the User asks for a new container. Select one
+  Workspace's Projects with `specflow project list --workspace-id <workspaceId>` —
+  an explicit, stateless filter combinable with `--status`; an unknown or
+  inaccessible Workspace returns an empty list, and a Session approved for a
+  Project subset never lists Projects outside that scope.
+- Administer Workspace membership and Roles only when the User asks. `specflow
+  workspace member list|search|add|set-role|remove` governs who holds access —
+  `search` reads the identity directory and `add` provisions the selected User
+  by exact issuer+subject identity, including before first login; there is no
+  invitation path. `specflow workspace role list|create|update|delete` manages
+  statement sets: pass `--statements` as a JSON resource-to-actions object, a
+  Role never exceeds the caller's own grants, `Owner` is immutable, and a Role
+  still assigned cannot be deleted. Member writes and Role writes take the
+  resource's opaque `version` as `--expected-version`; reread deliberately
+  after `Resource Changed`.
+- Project Creation requires an owning Workspace, a User-chosen immutable ID of 2-10
+  letters, and a User-chosen Gherkin Language whose keywords every Spec in the
+  Project uses. Ask for whichever is not supplied, then run `specflow project create
+  --name <name> --project-id <id> --workspace-id <workspaceId> --gherkin-language
+  <code>` with a Gherkin dialect code such as `en` or `zh-CN`.
 - Archive, Trash, or Restore only when the User's task requires that lifecycle
   change. Pass the opaque version returned by Project discovery or context, and
   reread deliberately after `Resource Changed` or an ambiguous transport outcome.
@@ -77,7 +128,7 @@ identity or request an Agent grant.
 - Treat `Resource Changed` from Proposal apply as a protected Human edit: reread the
   Working Draft and Proposal, then require deliberate conflict resolution. Never
   convert it into a blind direct edit or silently recreate the Proposal.
-- Apply the current Project Role to Finding and Membership operations. Never attempt
+- Apply the current Workspace Role to Finding operations. Never attempt
   to turn a Permission Denied result into broader authority.
 - Before any Spec Publish or Rollback, request explicit User confirmation immediately before
   invoking the command. Apply the same rule before any Glossary Publish or Rollback.

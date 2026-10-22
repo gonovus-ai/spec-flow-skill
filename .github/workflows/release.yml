@@ -37,7 +37,7 @@ jobs:
 
           source_repository="$(jq -r .source_repository PROVENANCE.json)"
           source_sha="$(jq -r .source_sha PROVENANCE.json)"
-          if [[ "${source_repository}" != "ztalkai/spec-flow" ]] || \
+          if [[ "${source_repository}" != "gonovus-ai/spec-flow" ]] || \
             [[ ! "${source_sha}" =~ ^[0-9a-f]{40}$ ]] || \
             [[ ! "${RELEASE_TAG}" =~ ^skill-v[0-9]+\.[0-9]+\.[0-9]+$ ]] || \
             [[ "$(jq -r .source_tag PROVENANCE.json)" != "${RELEASE_TAG}" ]] || \

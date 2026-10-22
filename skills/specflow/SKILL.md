@@ -1,34 +1,26 @@
 ---
 name: specflow
 description: Author and govern authoritative Specs and the Project Glossary through the supported SpecFlow CLI.
-compatible-cli: "@ztalkai/spec-flow-cli@0.1.5"
+compatible-cli: "@gonovus-ai/spec-flow-cli@0.2.0"
 ---
 
 # SpecFlow
-
-Before using this Skill, read
-[`shuorenhua/SHUORENHUA.md`](shuorenhua/SHUORENHUA.md) in full, relative to this
-Skill directory. Read the references required by its execution order, then apply
-that guidance before every human-readable output. This is a required step even
-for a short reply; do not substitute remembered guidance or a globally installed
-Skill. Reuse files already fully read in the current context unless their
-content changed.
 
 Use the official public CLI as the only SpecFlow operation boundary. Before any
 authentication or resource command, check whether `specflow` is installed and, when
 it is, run `specflow --version`.
 
 - If `specflow` is not installed, run only this exact installation command. If
-  installation fails, stop. Then run `specflow --version` again and require `0.1.5`:
+  installation fails, stop. Then run `specflow --version` again and require `0.2.0`:
 
 ```bash
-npm install --global @ztalkai/spec-flow-cli@0.1.5
+npm install --global @gonovus-ai/spec-flow-cli@0.2.0
 ```
 
 - If the installed version is different, stop and show the User that exact install
   command as the repair command. Do not run that repair command automatically or
   silently upgrade or downgrade an existing global installation.
-- If the installed version is `0.1.5`, continue without running the install command or
+- If the installed version is `0.2.0`, continue without running the install command or
   changing global state.
 - Do not replace the pinned version with `latest`, a raw HTTP command, or a private
   copy. Do not update the Skill or CLI automatically.
@@ -106,10 +98,10 @@ identity or request an Agent grant.
   resource's opaque `version` as `--expected-version`; reread deliberately
   after `Resource Changed`.
 - Project Creation requires an owning Workspace, a User-chosen immutable ID of 2-10
-  letters, and a User-chosen Gherkin Language whose keywords every Spec in the
+  letters, and a User-chosen Spec Language whose labels every Spec in the
   Project uses. Ask for whichever is not supplied, then run `specflow project create
-  --name <name> --project-id <id> --workspace-id <workspaceId> --gherkin-language
-  <code>` with a Gherkin dialect code such as `en` or `zh-CN`.
+  --name <name> --project-id <id> --workspace-id <workspaceId> --spec-language
+  <code>` with a supported Spec Language code: `en` or `zh-CN`.
 - Archive, Trash, or Restore only when the User's task requires that lifecycle
   change. Pass the opaque version returned by Project discovery or context, and
   reread deliberately after `Resource Changed` or an ambiguous transport outcome.
@@ -145,28 +137,26 @@ Glossary, and relevant existing Specs through the CLI. Use that context to choos
 of four outcomes: create a Spec, update or reuse an existing Spec, avoid a duplicate,
 or report a conflict that needs resolution.
 
-For each new Spec, write its title and all authored Gherkin prose (names,
-descriptions, steps, and explanatory table content) in the User's language.
+For each new Spec, write its title and all authored Spec prose (titles,
+Goals, Rules, Scenario lines, and explanatory table content) in the User's language.
 Use the User's explicit output-language request first, then their established
 language preference, and otherwise the language of their own task instructions.
 Reference material and this Skill do not determine the Spec's prose language.
 Use Published Canonical Terms verbatim even when the surrounding prose uses
 another language, and preserve literal values.
 
-Use the Project Gherkin Language for keywords and any `# language:` declaration;
+Use the Project Spec Language for section headings and line labels;
 it governs syntax, not the language of the Spec prose. English Spec prose in a
-`zh-CN` Project uses Chinese Gherkin keywords; Chinese Spec prose in an `en`
-Project uses English Gherkin keywords. When no Project language is supplied,
-use the Gherkin dialect matching the Spec prose.
-For non-English dialects, start with the matching `# language:` header and use
-that dialect's exact Gherkin keywords. For English, use English keywords without
-a language header. Keep the Project language setting unchanged.
+`zh-CN` Project uses Chinese labels; Chinese Spec prose in an `en`
+Project uses English labels. When no Project language is supplied,
+use the supported Spec Language matching the Spec prose.
+Keep the Project language setting unchanged.
 
-The Published Glossary, obtained together with the Gherkin Language from the
+The Published Glossary, obtained together with the Spec Language from the
 Project context read, is the only normative vocabulary for Spec authoring. Treat
 Glossary Working Draft entries like undefined terms: usable, never normative.
 When the Published Glossary defines the concept a requirement refers to, write
-the Canonical Term in Feature, Rule, Scenario, and step text even when the
+the Canonical Term in Title, Goal, Rule, Scenario, and line text even when the
 requirement uses a different word for the same meaning. Substituting a
 requirement synonym is not a blocking Question.
 
@@ -183,16 +173,20 @@ initiative. Materiality follows the Terminology Finding definition: the term
 must affect behavioral interpretation, so an unfamiliar ordinary word is not
 sufficient. When an existing Spec read for context disagrees with the Published
 Glossary, report the Spec and the Glossary Entry, and create a Terminology
-Finding only when the User asks. When reporting an authoring outcome to the
+Finding only when the User asks. Keep each required conflict report
+self-contained: retain both source meanings or concrete conflicting values, even
+when a Question also quotes them. When reporting an authoring outcome to the
 User, list the Canonical Term substitutions made, the undefined material terms
 suggested as Glossary candidates, and the existing Specs that disagree with the
 Published Glossary.
 
-Place the Spec under the one provided Capability that owns the business object and
-state changed by the goal. Do not combine alternative Capability paths, and do not
-select an actor's account Capability merely because that actor performs the behavior.
+When a provided Capability owns the goal's business object and changed state, use
+that placement. Otherwise create the Spec without `--capability-id`; Unassigned is
+not a hidden Capability. Move an existing Spec to Unassigned with `spec update
+--capability-id none` and its observed version. Choose one existing Capability when
+organizing later; an actor's account does not determine placement.
 
-Use Example Mapping before writing Gherkin:
+Use Example Mapping before writing Spec Content:
 
 1. Identify each distinct User goal by the outcome the User wants to complete, not by
    each step, command, or state on the way to that outcome.
@@ -200,7 +194,7 @@ Use Example Mapping before writing Gherkin:
 3. Give each Rule concrete success, rejection, failure, and boundary Examples.
 4. Record unresolved Questions instead of inventing answers.
 
-Map one User goal to one Spec and one `Feature`. Keep that goal's success, rejection,
+Map one User goal to one Spec with one Title and Goal. Keep that goal's success, rejection,
 failure, and boundary paths in the same Spec. Split independent goals into separate
 Specs even when they share a page, API, actor, or implementation; shared
 surfaces are not a reason to merge goals. A behavior is an independent goal only when
@@ -218,24 +212,78 @@ For example, starting checkout, completing payment, and handling a declined paym
 remain one purchase Spec. Viewing past orders is a separate goal even on the same
 page.
 
-Map a business Rule to `Rule` when naming the group adds domain meaning, and map each
-concrete Example to a `Scenario` with an observable outcome. Use `Scenario Outline`
-when one behavior repeats with different data. When two or more Examples differ only
-in input and expected output data, put them in one `Scenario Outline` and `Examples`
-table instead of parallel Scenarios. Use `Background` only for short, incidental
-context shared by several Scenarios; keep business policy in Rules and Examples.
+Write canonical Markdown in this fixed order: Title, Goal, optional Rules,
+optional Shared Preconditions, Scenarios, and optional Open Questions. Goal is one
+paragraph saying who wants what and why. Rules are numbered normative statements;
+they have no IDs. Shared Preconditions are a bullet list that holds for every
+Scenario. Each Scenario has a heading, an optional explanation, and ordered
+Precondition, Action, or Outcome lines. At least one Outcome is required. One
+optional pipe table records example values. Open Questions are a numbered list;
+they never block Publish and are supplied to Review as context.
 
-Every Scenario and Scenario Outline carries a stable Spec-scoped Scenario ID Tag such
-as `@PAY-123-4` that SpecFlow assigns, never the Agent. When editing a Working Draft,
-preserve each existing Scenario ID Tag verbatim: never invent, renumber, reorder, or
+Use `#` for the Title, `##` for sections, and `###` for each Scenario heading.
+English line labels are `Given`, `When`, and `Then`, followed by `: `.
+Chinese sections are `目标 / 规则 / 共同前提 / 情形 / 待确认`; line labels are
+`前提 / 操作 / 结果`, followed by `：`, as in `- 操作：顾客确认使用已保存的卡。`.
+Sentences use natural language without step-matching rules. Escape structural
+prefixes in authored text with a backslash and escape pipes inside table cells.
+Use one blank line between blocks and exactly one trailing newline.
+
+For example, an English Spec after Scenario ID assignment reads:
+
+```markdown
+# Pay for an order
+
+## Goal
+
+A customer pays for an order to complete checkout.
+
+## Rules
+
+1. The customer must be charged at most once.
+
+## Shared Preconditions
+
+- The order is unpaid.
+
+## Scenarios
+
+### PAY-123-4 Pay with a saved card
+
+- Given: The customer has a saved card.
+- When: The customer confirms payment.
+- Then: The order is paid.
+
+## Open Questions
+
+1. How long may payment confirmation take?
+```
+
+Every Scenario carries a stable Spec-scoped Scenario ID in its heading, such as
+`PAY-123-4`, that SpecFlow assigns, never the Agent. When editing a Working Draft,
+preserve each existing Scenario ID verbatim: never invent, renumber, reorder, or
 hand-assign Scenario IDs, and never put test-case-document numbering into Scenario
-titles. Keep the Tag when reordering or editing a Scenario inside the same Spec; when
-copying a Scenario from another Spec, remove its Scenario ID Tags before saving so
+titles. Keep the ID when reordering or editing a Scenario inside the same Spec; when
+copying a Scenario from another Spec, remove its Scenario ID before saving so
 assignment issues fresh IDs. After editing and before Publish, run
 `specflow spec assign-scenario-ids --project-id <project-id> --spec-id <spec-id>`
 to fill missing IDs and repair invalid, duplicate, or foreign ones while leaving
-valid IDs and unrelated Tags unchanged. Refer to scenarios by their Scenario ID in
-questions, findings, and reports.
+valid IDs unchanged. Refer to scenarios by their Scenario ID in questions,
+findings, and reports. Spec Content has no tags.
+
+Read Markdown with `specflow spec read --project-id <project-id> --spec-id
+<spec-id>`: `workingDraftSource` holds the current Draft and
+`currentRevision.content` holds Published Content. Start a Draft when needed with
+`specflow spec draft --project-id <project-id> --spec-id <spec-id>
+--expected-version <version>`. Write it with `specflow spec edit
+--project-id <project-id> --spec-id <spec-id> --content <markdown>`; its response
+contains `draft.content`. Content that does not parse as canonical Markdown is
+rejected as a whole with `Invalid Operation` diagnostics and leaves the Working
+Draft unchanged; correct the reported lines and send the full content again.
+Project context returns `specLanguage`. A Spec Proposal
+uses `proposal create-spec --project-id <project-id> --spec-id <spec-id>
+--baseline-content <baseline> --proposed-content <markdown>` and carries
+`baselineContent` and `proposedContent`. Keep the baseline exactly as read.
 
 Ask the smallest focused Question before editing only when a missing goal, acting
 authority, or business policy prevents a correct Spec boundary, Rule, or observable
@@ -260,7 +308,7 @@ with the exact actor, action, object, goal, or term from the requirement; never
 return template wording literally. Do not replace the choice
 with a menu of examples or a broader process question. When the current
 step asks only for clarification, return the blocking Questions and no Specs or
-Gherkin until the answers are supplied.
+Spec Content until the answers are supplied.
 
 ## Stable failure recovery
 
@@ -274,40 +322,16 @@ Handle the final `error.reason` exactly:
   intent with its new opaque version.
 - `Invalid Operation`: correct the domain input; never auto-restore, auto-publish, or
   bypass the stated rule. When `error.diagnostics` is present, each entry names the
-  `reason`, `message`, and the `line`/`column` of one problem in the Gherkin
-  source. For `scenario-id-*` reasons on Spec Publish, run `specflow spec
+  `reason`, `message`, and the `line`/`column` of one problem in the Markdown
+  content. For `scenario-id-*` reasons on Spec Publish, run `specflow spec
   assign-scenario-ids --project-id <project-id> --spec-id <spec-id>` to repair the
   Working Draft, then retry the Publish. For `scenario-id-*` reasons on Spec
   Rollback, the stored Revision cannot be repaired in place: read its source, save
   it to the Working Draft, run `specflow spec assign-scenario-ids`, and Publish
-  instead. Never hand-edit Scenario ID Tags; assignment is the only repair path.
+  instead. Never hand-edit Scenario IDs; assignment is the only repair path.
 - `Temporary Failure`: retry only when `retryable` is true, and honor `retryAfter` when
   present.
 
 Disabled Users, revoked or expired Sessions, Role downgrade, Project Archive, and
 stale expected versions are authoritative current-state failures. Do not reuse cached
 authority or silently broaden the Session's Project scope.
-
-## Agent-authored prose
-
-Apply the bundled Shuorenhua guidance in
-[`shuorenhua/SHUORENHUA.md`](shuorenhua/SHUORENHUA.md) to every piece of
-human-readable prose the Agent authors before returning it: blocking Questions,
-explanations, outcome and status reports, and authored Spec or Glossary prose. Its
-scene, severity, level, scope, and fidelity checks govern the pass, and the
-`references/` and `evals/` material it links to ships inside the same bundle. Do not
-reduce it to a banned-phrase list, and do not ask the User to install or invoke
-Shuorenhua separately.
-
-The pass is silent and never changes meaning. SpecFlow contracts outrank style:
-Canonical Terms, quoted Definitions, quantities and conditions, actor and action
-relations, Gherkin language and keywords, identifiers, CLI commands and flags, JSON
-fields, error and log names, and the compact Question forms stay exact. Grammar and
-phrasing may improve without changing observable behavior. The pass must not invent
-a business rule, erase a conflict or limitation, add a blocking Question, edit the
-Glossary, or create a Finding, and it must not leak a review checklist,
-alternatives, or the review itself into the reply. Annotation mode and output
-formats remain the User's choice; use them only when the User asks.
-
-Keep each required conflict report self-contained: retain both source meanings
-or concrete conflicting values, even when a Question also quotes them.

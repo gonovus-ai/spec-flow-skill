@@ -22,10 +22,10 @@ compatible_cli="$(sed -n 's/^compatible-cli: "\(.*\)"$/\1/p' "${skill_path}")"
 test -n "${skill_name}" && test -n "${skill_description}" && test -n "${compatible_cli}"
 
 if [[ "${mode}" == "release" ]]; then
-  grep -Fx "gh skill install ztalkai/spec-flow-skill specflow@${release_tag} --agent codex --scope user" "${source_root}/README.md"
-  grep -Fx "npx --yes skills@${skills_cli_version} add https://github.com/ztalkai/spec-flow-skill/tree/${release_tag}/skills/specflow --global --agent codex --yes" "${source_root}/README.md"
-  grep -Fx "gh skill install ztalkai/spec-flow-skill specflow@${release_tag} --agent claude-code --scope user" "${source_root}/README.md"
-  grep -Fx "npx --yes skills@${skills_cli_version} add https://github.com/ztalkai/spec-flow-skill/tree/${release_tag}/skills/specflow --global --agent claude-code --yes" "${source_root}/README.md"
+  grep -Fx "gh skill install gonovus-ai/spec-flow-skill specflow@${release_tag} --agent codex --scope user" "${source_root}/README.md"
+  grep -Fx "npx --yes skills@${skills_cli_version} add https://github.com/gonovus-ai/spec-flow-skill/tree/${release_tag}/skills/specflow --global --agent codex --yes" "${source_root}/README.md"
+  grep -Fx "gh skill install gonovus-ai/spec-flow-skill specflow@${release_tag} --agent claude-code --scope user" "${source_root}/README.md"
+  grep -Fx "npx --yes skills@${skills_cli_version} add https://github.com/gonovus-ai/spec-flow-skill/tree/${release_tag}/skills/specflow --global --agent claude-code --yes" "${source_root}/README.md"
 fi
 
 for installer in gh-skill npx-skills; do
@@ -39,7 +39,7 @@ for installer in gh-skill npx-skills; do
           --agent "${agent}" --scope user
       else
         HOME="${clean_home}" GH_CONFIG_DIR="${clean_home}/.config/gh" \
-          gh skill install ztalkai/spec-flow-skill "specflow@${release_tag}" \
+          gh skill install gonovus-ai/spec-flow-skill "specflow@${release_tag}" \
           --agent "${agent}" --scope user
       fi
       installed_dir="$(HOME="${clean_home}" \
@@ -50,14 +50,14 @@ for installer in gh-skill npx-skills; do
       installed_skill="${installed_dir}/SKILL.md"
       if [[ "${mode}" == "release" ]]; then
         grep -Fx "    github-ref: refs/tags/${release_tag}" "${installed_skill}"
-        grep -Fx "    github-repo: https://github.com/ztalkai/spec-flow-skill" "${installed_skill}"
+        grep -Fx "    github-repo: https://github.com/gonovus-ai/spec-flow-skill" "${installed_skill}"
         HOME="${clean_home}" GH_CONFIG_DIR="${clean_home}/.config/gh" \
           gh skill list --agent "${agent}" --scope user --json \
           skillName,sourceURL,scope,version,path | \
           jq -e --arg path "${installed_dir}" \
             --arg ref "${release_tag}" \
             'length == 1 and .[0].skillName == "specflow" and
-             .[0].sourceURL == "https://github.com/ztalkai/spec-flow-skill" and
+             .[0].sourceURL == "https://github.com/gonovus-ai/spec-flow-skill" and
              .[0].scope == "user" and .[0].version == $ref and
              .[0].path == $path'
       fi
@@ -70,7 +70,7 @@ for installer in gh-skill npx-skills; do
       if [[ "${mode}" == "local" ]]; then
         package="${source_root}"
       else
-        package="https://github.com/ztalkai/spec-flow-skill/tree/${release_tag}/skills/specflow"
+        package="https://github.com/gonovus-ai/spec-flow-skill/tree/${release_tag}/skills/specflow"
       fi
       HOME="${clean_home}" npm_config_cache="${clean_home}/.npm" \
         npm_config_userconfig=/dev/null \
@@ -79,7 +79,7 @@ for installer in gh-skill npx-skills; do
       if [[ "${mode}" == "release" ]]; then
         jq -e --arg ref "${release_tag}" \
           '.skills.specflow | .ref == $ref and
-           .sourceUrl == "https://github.com/ztalkai/spec-flow-skill.git" and
+           .sourceUrl == "https://github.com/gonovus-ai/spec-flow-skill.git" and
            .skillPath == "skills/specflow/SKILL.md"' \
           "${clean_home}/.agents/.skill-lock.json"
       fi

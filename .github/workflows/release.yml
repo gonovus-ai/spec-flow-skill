@@ -15,7 +15,7 @@ concurrency:
 jobs:
   release:
     name: Validate install and create immutable Release
-    if: github.repository == 'ztalkai/spec-flow-skill'
+    if: github.repository == 'gonovus-ai/spec-flow-skill'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -23,7 +23,7 @@ jobs:
       SKILLS_CLI_VERSION: 1.5.23
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           persist-credentials: false

@@ -1,0 +1,26 @@
+{
+  "name": "specflow",
+  "author": {
+    "name": "Gonovus AI"
+  },
+  "homepage": "https://github.com/gonovus-ai/spec-flow-skill",
+  "repository": "https://github.com/gonovus-ai/spec-flow-skill",
+  "keywords": [
+    "specflow",
+    "specifications",
+    "glossary"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "SpecFlow",
+    "shortDescription": "Author and govern Specs through the SpecFlow CLI",
+    "developerName": "Gonovus AI",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ]
+  },
+  "version": "0.3.0",
+  "description": "Author and govern authoritative Specs and the Workspace Glossary through the supported SpecFlow CLI."
+}

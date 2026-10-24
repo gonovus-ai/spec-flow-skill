@@ -1,7 +1,7 @@
 ---
 name: specflow
-description: Author and govern authoritative Specs and the Project Glossary through the supported SpecFlow CLI.
-compatible-cli: "@gonovus-ai/spec-flow-cli@0.2.0"
+description: Author and govern authoritative Specs and the Workspace Glossary through the supported SpecFlow CLI.
+compatible-cli: "@gonovus-ai/spec-flow-cli@0.3.0"
 ---
 
 # SpecFlow
@@ -11,16 +11,16 @@ authentication or resource command, check whether `specflow` is installed and, w
 it is, run `specflow --version`.
 
 - If `specflow` is not installed, run only this exact installation command. If
-  installation fails, stop. Then run `specflow --version` again and require `0.2.0`:
+  installation fails, stop. Then run `specflow --version` again and require `0.3.0`:
 
 ```bash
-npm install --global @gonovus-ai/spec-flow-cli@0.2.0
+npm install --global @gonovus-ai/spec-flow-cli@0.3.0
 ```
 
 - If the installed version is different, stop and show the User that exact install
   command as the repair command. Do not run that repair command automatically or
   silently upgrade or downgrade an existing global installation.
-- If the installed version is `0.2.0`, continue without running the install command or
+- If the installed version is `0.3.0`, continue without running the install command or
   changing global state.
 - Do not replace the pinned version with `latest`, a raw HTTP command, or a private
   copy. Do not update the Skill or CLI automatically.
@@ -33,14 +33,44 @@ names a different SpecFlow origin, and use that same flag on authentication and 
 resource command:
 
 ```bash
-specflow auth login
+specflow auth login --grants '[{"scope":"WorkspaceKnowledge","resourceId":"<workspace-id>","statements":{"spec":["read"]}},{"scope":"ProjectTasks","resourceId":"<project-id>","statements":{"workItem":["read","create","update"]}}]'
 specflow project list
 ```
 
-The resulting independently revocable CLI Session belongs to the User. It carries
-that User's current Role only within its approval-time Project scope. Always pass an
-explicit `--project-id` after Project Creation or Discovery. Do not register an Agent
-identity or request an Agent grant.
+The resulting independently revocable CLI Session belongs to the User. Its explicit
+`--grants` array separates `WorkspaceKnowledge` targets (Workspace IDs) from
+`ProjectTasks` targets (system-generated Project IDs). Each target carries its own
+resource/action `statements`. Approval displays the requested grants; changing them
+requires a new request. Current eligibility, membership and Role statements narrow
+every operation. No grant implies read, publish, another target, or another scope.
+Do not register an Agent identity or request an Agent grant.
+
+Knowledge authoring uses `spec`, `capability`, and `glossary` statements on the
+Workspace target. Task grants use `workItem` and `label` on each Project target;
+`project` accepts only `read` in that scope. To manage read-only Tokens through a
+CLI Session, request a Workspace grant with the needed `readToken` actions
+(`issue`, `read`, `revoke`). That grant never lets an API Key mint credentials.
+
+User API Keys use that same array: `api-key create --name <name> --grants <json>
+--expires-at <UTC timestamp|never> --idempotency-key <uuid>`. Use `api-key list` and
+`api-key revoke --key-id <uuid> --expected-version <quoted version>
+--idempotency-key <uuid>` to manage them. Creation stores the one-time secret in the
+origin-scoped credential store; stdout contains metadata only. Replayed issuance
+never returns a secret. Select a stored key with `--api-key-id`, or supply
+`SPEC_FLOW_API_KEY`. Never combine credentials or fall back to a Session after a
+key or Token fails.
+
+Workspace administrators issue read-only credentials with `token issue
+--workspace-id <id> --name <name> [--expires-at <UTC timestamp>]`; `token list` and
+`token revoke --workspace-id <id> --token-id <id>` manage them. The issue secret is
+shown once; metadata and audit retain the credential identity. Inject it through
+`SPEC_FLOW_WORKSPACE_READ_TOKEN` for `spec current`, `spec revision`, and
+`workspace glossary revision`, each with `--workspace-id` and the explicit resource/version
+IDs. Current reads require a published Ready Spec; explicit revisions are immutable
+published content. Drafts, Findings, Members, Project tasks and every mutation are
+excluded. Tokens have optional expiry and can be revoked. They never enter the
+Session credential store. The old Project Token and its environment variable are
+retired.
 
 ## Operating contract
 
@@ -53,7 +83,7 @@ identity or request an Agent grant.
   Public sharing exposes Task fields and current description assets, and grants
   no Workspace membership, Spec/Glossary, task-resource or comment-asset access.
   Archive and Trash close sharing; Restore keeps it private until explicitly
-  enabled again. Project Read Tokens cannot manage sharing.
+  enabled again. Workspace read-only Tokens cannot manage sharing.
 
 - Read the current User's notification inbox with `notification list`. A target
   never grants access: use the fresh target returned by `notification read
@@ -63,13 +93,12 @@ identity or request an Agent grant.
   after an ambiguous outcome so retrying cannot change newer entries. Read category
   preferences with `notification preferences get`; update only requested fields
   through `notification preferences update --expected-version <version> --preferences <json> --idempotency-key
-  <uuid>`. Project-scoped Sessions can read admitted targets, while Project Read
-  Tokens cannot access personal notifications. Do not claim scheduled reminders,
+  <uuid>`. Project-scoped Sessions can read admitted targets, while Workspace read-only Tokens cannot access personal notifications. Do not claim scheduled reminders,
   external delivery, or live Gateway push from this durable inbox.
 
 - When the User asks to associate a Task with supporting resources, use
   `work-item resource-link list|add|remove` with explicit Project and Task identities.
-  A `spec` target uses its stable `--spec-id`, optionally `--spec-project-id`;
+  A `spec` target uses its stable `--spec-id` and required `--workspace-id`;
   `document` and `other` targets use a User-authored name and HTTP/HTTPS locator.
   Adds and removals take an explicit UUID command key; retain it after an ambiguous
   outcome. Removal also takes the association's opaque expected version. Read
@@ -82,7 +111,7 @@ identity or request an Agent grant.
   Project. Every newly created Project belongs to exactly one owning Workspace, and
   Workspace Membership is the only source of Project permissions.
 - Discover Workspaces with `specflow workspace list` and create one with `specflow
-  workspace create --name <name>` when the User asks for a new container. Select one
+  workspace create --name <name> --prefix <prefix>` when the User asks for a new container. Select one
   Workspace's Projects with `specflow project list --workspace-id <workspaceId>` —
   an explicit, stateless filter combinable with `--status`; an unknown or
   inaccessible Workspace returns an empty list, and a Session approved for a
@@ -97,11 +126,14 @@ identity or request an Agent grant.
   still assigned cannot be deleted. Member writes and Role writes take the
   resource's opaque `version` as `--expected-version`; reread deliberately
   after `Resource Changed`.
-- Project Creation requires an owning Workspace, a User-chosen immutable ID of 2-10
-  letters, and a User-chosen Spec Language whose labels every Spec in the
-  Project uses. Ask for whichever is not supplied, then run `specflow project create
-  --name <name> --project-id <id> --workspace-id <workspaceId> --spec-language
-  <code>` with a supported Spec Language code: `en` or `zh-CN`.
+- Workspace Creation requires an immutable, globally unique prefix of 2-10 letters.
+  Specs use PAY-S123, Scenarios PAY-S123-4, and Work Items PAY-123 across its Projects.
+- Project Creation requires an owning Workspace. Run `specflow project create --name <name> --workspace-id <workspaceId>`. Spec language belongs to the Workspace.
+  The server generates the Project ID; discover and pass that ID without deriving it from a task number.
+- Read and author shared Specs with `specflow spec list|read|create|edit` and
+  `specflow capability list|create|update|delete`, passing `--workspace-id <workspaceId>`.
+  Use the same Workspace for draft, owner, publish, rollback, state and delete commands.
+  A Project filter selects Specs linked from its Work Items, never Project-owned copies.
 - Archive, Trash, or Restore only when the User's task requires that lifecycle
   change. Pass the opaque version returned by Project discovery or context, and
   reread deliberately after `Resource Changed` or an ambiguous transport outcome.
@@ -112,6 +144,7 @@ identity or request an Agent grant.
 - Organize Capability and Spec resources, persist only bounded Source References, and
   edit Spec or Glossary Working Drafts through the logical CLI commands. Do not
   implement a collaboration protocol or connect to the collaboration gateway.
+- Read shared Spec provenance with `specflow authoring-history --workspace-id <workspaceId>`.
 - Use `proposal create-spec` or `proposal create-glossary` only when preview-before-apply
   is useful. Bind it to the exact logical baseline you read, report only available
   Agent revision/model and Source Reference IDs, and use `proposal list`, `apply`, or
@@ -131,7 +164,7 @@ identity or request an Agent grant.
 
 ## Authoring Specs
 
-Before deciding Spec boundaries, use current Project context already supplied by the
+Before deciding Spec boundaries, use current Workspace knowledge context already supplied by the
 task. When authoring against SpecFlow, read any missing Capability tree, Published
 Glossary, and relevant existing Specs through the CLI. Use that context to choose one
 of four outcomes: create a Spec, update or reuse an existing Spec, avoid a duplicate,
@@ -145,16 +178,13 @@ Reference material and this Skill do not determine the Spec's prose language.
 Use Published Canonical Terms verbatim even when the surrounding prose uses
 another language, and preserve literal values.
 
-Use the Project Spec Language for section headings and line labels;
-it governs syntax, not the language of the Spec prose. English Spec prose in a
-`zh-CN` Project uses Chinese labels; Chinese Spec prose in an `en`
-Project uses English labels. When no Project language is supplied,
-use the supported Spec Language matching the Spec prose.
-Keep the Project language setting unchanged.
+Workspace creation accepts `--spec-language zh-CN|en` (default `zh-CN`). `workspace settings read|update --workspace-id <workspaceId>` owns subsequent language changes; published Revisions keep their language; unpublished outlines serialize with the new labels. Read `specLanguage` from Workspace knowledge context. Project-shaped adapters read that same value. This controls syntax, not authored prose.
 
-The Published Glossary, obtained together with the Spec Language from the
-Project context read, is the only normative vocabulary for Spec authoring. Treat
-Glossary Working Draft entries like undefined terms: usable, never normative.
+Read the shared map with `specflow map read --workspace-id <workspaceId>`. Its screen, journey, place, unplace and backstage commands use Workspace identity and the current Screen/Journey/Spec version. Task resource links use `--workspace-id` for the shared Spec target while the task retains `--project-id`.
+
+The current Published Workspace Glossary is the only normative vocabulary for
+shared Spec authoring. Read it with `specflow workspace glossary read --workspace-id <workspaceId>`.
+Treat Glossary Working Draft entries like undefined terms: usable, never normative.
 When the Published Glossary defines the concept a requirement refers to, write
 the Canonical Term in Title, Goal, Rule, Scenario, and line text even when the
 requirement uses a different word for the same meaning. Substituting a
@@ -248,7 +278,7 @@ A customer pays for an order to complete checkout.
 
 ## Scenarios
 
-### PAY-123-4 Pay with a saved card
+### PAY-S123-4 Pay with a saved card
 
 - Given: The customer has a saved card.
 - When: The customer confirms payment.
@@ -260,27 +290,27 @@ A customer pays for an order to complete checkout.
 ```
 
 Every Scenario carries a stable Spec-scoped Scenario ID in its heading, such as
-`PAY-123-4`, that SpecFlow assigns, never the Agent. When editing a Working Draft,
+`PAY-S123-4`, that SpecFlow assigns, never the Agent. When editing a Working Draft,
 preserve each existing Scenario ID verbatim: never invent, renumber, reorder, or
 hand-assign Scenario IDs, and never put test-case-document numbering into Scenario
 titles. Keep the ID when reordering or editing a Scenario inside the same Spec; when
 copying a Scenario from another Spec, remove its Scenario ID before saving so
 assignment issues fresh IDs. After editing and before Publish, run
-`specflow spec assign-scenario-ids --project-id <project-id> --spec-id <spec-id>`
+`specflow spec assign-scenario-ids --workspace-id <workspace-id> --spec-id <spec-id>`
 to fill missing IDs and repair invalid, duplicate, or foreign ones while leaving
 valid IDs unchanged. Refer to scenarios by their Scenario ID in questions,
 findings, and reports. Spec Content has no tags.
 
-Read Markdown with `specflow spec read --project-id <project-id> --spec-id
+Read Markdown with `specflow spec read --workspace-id <workspace-id> --spec-id
 <spec-id>`: `workingDraftSource` holds the current Draft and
 `currentRevision.content` holds Published Content. Start a Draft when needed with
-`specflow spec draft --project-id <project-id> --spec-id <spec-id>
+`specflow spec draft --workspace-id <workspace-id> --spec-id <spec-id>
 --expected-version <version>`. Write it with `specflow spec edit
---project-id <project-id> --spec-id <spec-id> --content <markdown>`; its response
+--workspace-id <workspace-id> --spec-id <spec-id> --content <markdown>`; its response
 contains `draft.content`. Content that does not parse as canonical Markdown is
 rejected as a whole with `Invalid Operation` diagnostics and leaves the Working
 Draft unchanged; correct the reported lines and send the full content again.
-Project context returns `specLanguage`. A Spec Proposal
+Workspace knowledge context returns `specLanguage`; Project-shaped adapters read the same value. A Spec Proposal
 uses `proposal create-spec --project-id <project-id> --spec-id <spec-id>
 --baseline-content <baseline> --proposed-content <markdown>` and carries
 `baselineContent` and `proposedContent`. Keep the baseline exactly as read.
@@ -312,7 +342,14 @@ Spec Content until the answers are supplied.
 
 ## Stable failure recovery
 
-Handle the final `error.reason` exactly:
+Handle the final `error.reason` exactly. Newer CLI responses also carry the public
+`error.code`, HTTP `error.status` when a response exists, and optional `error.issues`
+with `location`, `path`, `rule` and `message`. Use those fields to correct input;
+never assume a missing HTTP status means the server accepted the command. Existing
+`reason`, exit codes and Markdown `diagnostics` remain the compatibility contract.
+If `code=EXECUTION_OUTCOME_UNKNOWN`, first reread the target resource; do not create
+a new command identity and blindly repeat the write. A 413 requires smaller input;
+a 428 requires the current observed version, not waiting and retrying unchanged.
 
 - `Authentication Failed`: stop and ask the User to authenticate again.
 - `Project Not Accessible`: stop; do not probe the Project with another identifier.
@@ -324,7 +361,7 @@ Handle the final `error.reason` exactly:
   bypass the stated rule. When `error.diagnostics` is present, each entry names the
   `reason`, `message`, and the `line`/`column` of one problem in the Markdown
   content. For `scenario-id-*` reasons on Spec Publish, run `specflow spec
-  assign-scenario-ids --project-id <project-id> --spec-id <spec-id>` to repair the
+  assign-scenario-ids --workspace-id <workspace-id> --spec-id <spec-id>` to repair the
   Working Draft, then retry the Publish. For `scenario-id-*` reasons on Spec
   Rollback, the stored Revision cannot be repaired in place: read its source, save
   it to the Working Draft, run `specflow spec assign-scenario-ids`, and Publish
@@ -334,4 +371,4 @@ Handle the final `error.reason` exactly:
 
 Disabled Users, revoked or expired Sessions, Role downgrade, Project Archive, and
 stale expected versions are authoritative current-state failures. Do not reuse cached
-authority or silently broaden the Session's Project scope.
+authority or silently broaden the credential's explicit grants.

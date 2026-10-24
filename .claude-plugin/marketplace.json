@@ -1,0 +1,14 @@
+{
+  "name": "specflow",
+  "description": "The official SpecFlow plugin for Claude Code.",
+  "owner": {
+    "name": "Gonovus AI"
+  },
+  "plugins": [
+    {
+      "name": "specflow",
+      "source": "./",
+      "description": "Author and govern authoritative Specs and the Workspace Glossary through the supported SpecFlow CLI."
+    }
+  ]
+}

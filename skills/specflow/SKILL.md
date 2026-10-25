@@ -1,7 +1,7 @@
 ---
 name: specflow
 description: Author and govern authoritative Specs and the Workspace Glossary through the supported SpecFlow CLI.
-compatible-cli: "@gonovus-ai/spec-flow-cli@0.3.0"
+compatible-cli: "@gonovus-ai/spec-flow-cli@0.3.1"
 ---
 
 # SpecFlow
@@ -11,16 +11,16 @@ authentication or resource command, check whether `specflow` is installed and, w
 it is, run `specflow --version`.
 
 - If `specflow` is not installed, run only this exact installation command. If
-  installation fails, stop. Then run `specflow --version` again and require `0.3.0`:
+  installation fails, stop. Then run `specflow --version` again and require `0.3.1`:
 
 ```bash
-npm install --global @gonovus-ai/spec-flow-cli@0.3.0
+npm install --global @gonovus-ai/spec-flow-cli@0.3.1
 ```
 
 - If the installed version is different, stop and show the User that exact install
   command as the repair command. Do not run that repair command automatically or
   silently upgrade or downgrade an existing global installation.
-- If the installed version is `0.3.0`, continue without running the install command or
+- If the installed version is `0.3.1`, continue without running the install command or
   changing global state.
 - Do not replace the pinned version with `latest`, a raw HTTP command, or a private
   copy. Do not update the Skill or CLI automatically.
@@ -50,6 +50,12 @@ Workspace target. Task grants use `workItem` and `label` on each Project target;
 `project` accepts only `read` in that scope. To manage read-only Tokens through a
 CLI Session, request a Workspace grant with the needed `readToken` actions
 (`issue`, `read`, `revoke`). That grant never lets an API Key mint credentials.
+
+Creating a delivery Project requires a CLI Session with `project: ["create"]`
+on the owning `WorkspaceKnowledge` target, in addition to the User's current
+Workspace Role. It grants no task access to the new Project: discover its returned
+ID and authorize a new Session with its explicit `ProjectTasks` target before
+managing tasks. This grant does not authorize Workspace creation or administration.
 
 User API Keys use that same array: `api-key create --name <name> --grants <json>
 --expires-at <UTC timestamp|never> --idempotency-key <uuid>`. Use `api-key list` and
@@ -131,7 +137,8 @@ retired.
 - Project Creation requires an owning Workspace. Run `specflow project create --name <name> --workspace-id <workspaceId>`. Spec language belongs to the Workspace.
   The server generates the Project ID; discover and pass that ID without deriving it from a task number.
 - Read and author shared Specs with `specflow spec list|read|create|edit` and
-  `specflow capability list|create|update|delete`, passing `--workspace-id <workspaceId>`.
+  `specflow capability create|update|delete`, passing `--workspace-id <workspaceId>`.
+  Read the Capability tree from `specflow spec list --workspace-id <workspaceId>`.
   Use the same Workspace for draft, owner, publish, rollback, state and delete commands.
   A Project filter selects Specs linked from its Work Items, never Project-owned copies.
 - Archive, Trash, or Restore only when the User's task requires that lifecycle
@@ -181,6 +188,13 @@ another language, and preserve literal values.
 Workspace creation accepts `--spec-language zh-CN|en` (default `zh-CN`). `workspace settings read|update --workspace-id <workspaceId>` owns subsequent language changes; published Revisions keep their language; unpublished outlines serialize with the new labels. Read `specLanguage` from Workspace knowledge context. Project-shaped adapters read that same value. This controls syntax, not authored prose.
 
 Read the shared map with `specflow map read --workspace-id <workspaceId>`. Its screen, journey, place, unplace and backstage commands use Workspace identity and the current Screen/Journey/Spec version. Task resource links use `--workspace-id` for the shared Spec target while the task retains `--project-id`.
+
+For a local Screen image, reserve it with `map screen image-reserve`, save the
+returned JSON to an owner-only file, and upload bytes with `work-item asset put
+--reservation-file <path> --file <path>`. That byte-only command supports signed
+S3 and Azure BlockBlob reservations and does not attach an image. Attach it with
+`map screen image-finalize`, retaining the observed Screen version and original
+command keys after an uncertain response. Never print a signed upload URL.
 
 The current Published Workspace Glossary is the only normative vocabulary for
 shared Spec authoring. Read it with `specflow workspace glossary read --workspace-id <workspaceId>`.

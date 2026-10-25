@@ -1,7 +1,7 @@
 ---
 name: specflow
 description: Author and govern authoritative Specs and the Workspace Glossary through the supported SpecFlow CLI.
-compatible-cli: "@gonovus-ai/spec-flow-cli@0.3.1"
+compatible-cli: "@gonovus-ai/spec-flow-cli@0.3.2"
 ---
 
 # SpecFlow
@@ -11,16 +11,16 @@ authentication or resource command, check whether `specflow` is installed and, w
 it is, run `specflow --version`.
 
 - If `specflow` is not installed, run only this exact installation command. If
-  installation fails, stop. Then run `specflow --version` again and require `0.3.1`:
+  installation fails, stop. Then run `specflow --version` again and require `0.3.2`:
 
 ```bash
-npm install --global @gonovus-ai/spec-flow-cli@0.3.1
+npm install --global @gonovus-ai/spec-flow-cli@0.3.2
 ```
 
 - If the installed version is different, stop and show the User that exact install
   command as the repair command. Do not run that repair command automatically or
   silently upgrade or downgrade an existing global installation.
-- If the installed version is `0.3.1`, continue without running the install command or
+- If the installed version is `0.3.2`, continue without running the install command or
   changing global state.
 - Do not replace the pinned version with `latest`, a raw HTTP command, or a private
   copy. Do not update the Skill or CLI automatically.
@@ -38,8 +38,9 @@ specflow project list
 ```
 
 The resulting independently revocable CLI Session belongs to the User. Its explicit
-`--grants` array separates `WorkspaceKnowledge` targets (Workspace IDs) from
-`ProjectTasks` targets (system-generated Project IDs). Each target carries its own
+`--grants` array separates `WorkspaceKnowledge` targets (Workspace IDs),
+`ProjectTasks` targets (system-generated Project IDs), and CLI-only `UserAccount`
+targets (`self`). Each target carries its own
 resource/action `statements`. Approval displays the requested grants; changing them
 requires a new request. Current eligibility, membership and Role statements narrow
 every operation. No grant implies read, publish, another target, or another scope.
@@ -47,7 +48,11 @@ Do not register an Agent identity or request an Agent grant.
 
 Knowledge authoring uses `spec`, `capability`, and `glossary` statements on the
 Workspace target. Task grants use `workItem` and `label` on each Project target;
-`project` accepts only `read` in that scope. To manage read-only Tokens through a
+`project` accepts explicit read, update, archive, restore, trash and share actions
+in that scope, never create. Workspace Member, Role and settings actions belong to
+the WorkspaceKnowledge target in a CLI Session; API Keys retain their narrower
+business surface. Role definitions and assignments cannot exceed the
+User’s current Workspace Role; declare the specific administration action separately. To manage read-only Tokens through a
 CLI Session, request a Workspace grant with the needed `readToken` actions
 (`issue`, `read`, `revoke`). That grant never lets an API Key mint credentials.
 
@@ -55,9 +60,13 @@ Creating a delivery Project requires a CLI Session with `project: ["create"]`
 on the owning `WorkspaceKnowledge` target, in addition to the User's current
 Workspace Role. It grants no task access to the new Project: discover its returned
 ID and authorize a new Session with its explicit `ProjectTasks` target before
-managing tasks. This grant does not authorize Workspace creation or administration.
+managing tasks. This grant does not authorize Workspace creation or administration. Workspace
+creation requires `UserAccount` targeting `self` with `workspace: ["create"]`; it
+grants no knowledge or task access to the returned Workspace.
 
-User API Keys use that same array: `api-key create --name <name> --grants <json>
+User API Keys accept WorkspaceKnowledge/ProjectTasks arrays without UserAccount
+or Session-only administration. A Key’s ProjectTasks.project admits only read. Use
+`api-key create --name <name> --grants <json>
 --expires-at <UTC timestamp|never> --idempotency-key <uuid>`. Use `api-key list` and
 `api-key revoke --key-id <uuid> --expected-version <quoted version>
 --idempotency-key <uuid>` to manage them. Creation stores the one-time secret in the
@@ -78,6 +87,15 @@ excluded. Tokens have optional expiry and can be revoked. They never enter the
 Session credential store. The old Project Token and its environment variable are
 retired.
 
+Personal GitHub metadata requires `UserAccount` targeting `self` with
+`githubAccount: ["read"]`; authorization and disconnect use their separate
+`authorize` and `disconnect` actions. Personal notification preferences use
+`notificationPreference: ["read"]` or `["update"]`. Inbox read, bulk mark-read and
+clear use `notification: ["read"]`, `["update"]` and `["delete"]` respectively.
+Private target content additionally needs its business read grant. UserAccount
+never authorizes another User, upstream identity security or other Session
+management, and API Keys cannot request it.
+
 ## Operating contract
 
 - Manage public Task sharing only when the User requests it. Read the independent
@@ -94,8 +112,9 @@ retired.
 - Read the current User's notification inbox with `notification list`. A target
   never grants access: use the fresh target returned by `notification read
   --notification-id <uuid> --idempotency-key <uuid>` before navigating. `notification
-  read-all` and `notification clear` require an explicit UUID command key and an
-  unrestricted CLI Session; clear only when the User requests it. Retain the key
+  read-all` and `notification clear` require an explicit UUID command key and a
+  `UserAccount` notification update/delete grant respectively; clear only when the
+  User requests it. Retain the key
   after an ambiguous outcome so retrying cannot change newer entries. Read category
   preferences with `notification preferences get`; update only requested fields
   through `notification preferences update --expected-version <version> --preferences <json> --idempotency-key
@@ -155,7 +174,7 @@ retired.
 - Use `proposal create-spec` or `proposal create-glossary` only when preview-before-apply
   is useful. Bind it to the exact logical baseline you read, report only available
   Agent revision/model and Source Reference IDs, and use `proposal list`, `apply`, or
-  `discard` as independent resource operations. Direct `spec edit` and `glossary edit`
+  `discard` as independent resource operations. Direct `spec edit` and `workspace glossary edit`
   remain the default and may report the same bounded provenance fields.
 - Treat `Resource Changed` from Proposal apply as a protected Human edit: reread the
   Working Draft and Proposal, then require deliberate conflict resolution. Never
@@ -325,7 +344,7 @@ contains `draft.content`. Content that does not parse as canonical Markdown is
 rejected as a whole with `Invalid Operation` diagnostics and leaves the Working
 Draft unchanged; correct the reported lines and send the full content again.
 Workspace knowledge context returns `specLanguage`; Project-shaped adapters read the same value. A Spec Proposal
-uses `proposal create-spec --project-id <project-id> --spec-id <spec-id>
+uses `proposal create-spec --workspace-id <workspace-id> --spec-id <spec-id>
 --baseline-content <baseline> --proposed-content <markdown>` and carries
 `baselineContent` and `proposedContent`. Keep the baseline exactly as read.
 

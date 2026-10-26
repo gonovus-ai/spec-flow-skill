@@ -10,12 +10,12 @@ This repository is also a plugin marketplace for Claude Code and Codex. Add the
 marketplace at this exact release, then install the `specflow` plugin:
 
 ```bash
-claude plugin marketplace add gonovus-ai/spec-flow-skill#skill-v0.3.2
+claude plugin marketplace add gonovus-ai/spec-flow-skill#skill-v0.4.0
 claude plugin install specflow@specflow
 ```
 
 ```bash
-codex plugin marketplace add gonovus-ai/spec-flow-skill --ref skill-v0.3.2
+codex plugin marketplace add gonovus-ai/spec-flow-skill --ref skill-v0.4.0
 codex plugin add specflow@specflow
 ```
 
@@ -30,17 +30,17 @@ Install SpecFlow for Codex at user scope from this exact release with either
 supported installer:
 
 ```bash
-gh skill install gonovus-ai/spec-flow-skill specflow@skill-v0.3.2 --agent codex --scope user
-npx --yes skills@1.5.23 add https://github.com/gonovus-ai/spec-flow-skill/tree/skill-v0.3.2/skills/specflow --global --agent codex --yes
+gh skill install gonovus-ai/spec-flow-skill specflow@skill-v0.4.0 --agent codex --scope user
+npx --yes skills@1.5.23 add https://github.com/gonovus-ai/spec-flow-skill/tree/skill-v0.4.0/skills/specflow --global --agent codex --yes
 ```
 
 Install the same release for Claude Code at user scope:
 
 ```bash
-gh skill install gonovus-ai/spec-flow-skill specflow@skill-v0.3.2 --agent claude-code --scope user
-npx --yes skills@1.5.23 add https://github.com/gonovus-ai/spec-flow-skill/tree/skill-v0.3.2/skills/specflow --global --agent claude-code --yes
+gh skill install gonovus-ai/spec-flow-skill specflow@skill-v0.4.0 --agent claude-code --scope user
+npx --yes skills@1.5.23 add https://github.com/gonovus-ai/spec-flow-skill/tree/skill-v0.4.0/skills/specflow --global --agent claude-code --yes
 ```
 
-Source: `gonovus-ai/spec-flow@641fba71843cbd6c93a7233060765644ad7f1aa8`
+Source: `gonovus-ai/spec-flow@94144002936f4c0c6e7395ebbfe34ff6230afdd9`
 
-Release: `skill-v0.3.2`
+Release: `skill-v0.4.0`

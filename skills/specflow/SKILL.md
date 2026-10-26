@@ -1,7 +1,7 @@
 ---
 name: specflow
 description: Author and govern authoritative Specs and the Workspace Glossary through the supported SpecFlow CLI.
-compatible-cli: "@gonovus-ai/spec-flow-cli@0.3.2"
+compatible-cli: "@gonovus-ai/spec-flow-cli@0.4.0"
 ---
 
 # SpecFlow
@@ -11,16 +11,16 @@ authentication or resource command, check whether `specflow` is installed and, w
 it is, run `specflow --version`.
 
 - If `specflow` is not installed, run only this exact installation command. If
-  installation fails, stop. Then run `specflow --version` again and require `0.3.2`:
+  installation fails, stop. Then run `specflow --version` again and require `0.4.0`:
 
 ```bash
-npm install --global @gonovus-ai/spec-flow-cli@0.3.2
+npm install --global @gonovus-ai/spec-flow-cli@0.4.0
 ```
 
 - If the installed version is different, stop and show the User that exact install
   command as the repair command. Do not run that repair command automatically or
   silently upgrade or downgrade an existing global installation.
-- If the installed version is `0.3.2`, continue without running the install command or
+- If the installed version is `0.4.0`, continue without running the install command or
   changing global state.
 - Do not replace the pinned version with `latest`, a raw HTTP command, or a private
   copy. Do not update the Skill or CLI automatically.
@@ -33,36 +33,21 @@ names a different SpecFlow origin, and use that same flag on authentication and 
 resource command:
 
 ```bash
-specflow auth login --grants '[{"scope":"WorkspaceKnowledge","resourceId":"<workspace-id>","statements":{"spec":["read"]}},{"scope":"ProjectTasks","resourceId":"<project-id>","statements":{"workItem":["read","create","update"]}}]'
+specflow auth login
 specflow project list
 ```
 
-The resulting independently revocable CLI Session belongs to the User. Its explicit
-`--grants` array separates `WorkspaceKnowledge` targets (Workspace IDs),
-`ProjectTasks` targets (system-generated Project IDs), and CLI-only `UserAccount`
-targets (`self`). Each target carries its own
-resource/action `statements`. Approval displays the requested grants; changing them
-requires a new request. Current eligibility, membership and Role statements narrow
-every operation. No grant implies read, publish, another target, or another scope.
-Do not register an Agent identity or request an Agent grant.
+The resulting independently revocable CLI Session belongs to the User and uses
+all of that User's current SpecFlow permissions. No Workspace, Project, resource,
+or action selection is required. New Workspaces and Projects are available without
+another login. Membership, Role, lifecycle, User eligibility and Session revocation
+are checked by the server on every operation; login does not save a permission
+snapshot or bypass those checks. Do not register an Agent identity or request an Agent grant.
 
-Knowledge authoring uses `spec`, `capability`, and `glossary` statements on the
-Workspace target. Task grants use `workItem` and `label` on each Project target;
-`project` accepts explicit read, update, archive, restore, trash and share actions
-in that scope, never create. Workspace Member, Role and settings actions belong to
-the WorkspaceKnowledge target in a CLI Session; API Keys retain their narrower
-business surface. Role definitions and assignments cannot exceed the
-User’s current Workspace Role; declare the specific administration action separately. To manage read-only Tokens through a
-CLI Session, request a Workspace grant with the needed `readToken` actions
-(`issue`, `read`, `revoke`). That grant never lets an API Key mint credentials.
-
-Creating a delivery Project requires a CLI Session with `project: ["create"]`
-on the owning `WorkspaceKnowledge` target, in addition to the User's current
-Workspace Role. It grants no task access to the new Project: discover its returned
-ID and authorize a new Session with its explicit `ProjectTasks` target before
-managing tasks. This grant does not authorize Workspace creation or administration. Workspace
-creation requires `UserAccount` targeting `self` with `workspace: ["create"]`; it
-grants no knowledge or task access to the returned Workspace.
+A legacy explicitly restricted Session retains its original scope. When the User
+requests normal User access, log in again without `--grants`; do not repeatedly
+request new target grants as Workspaces or Projects are created. Account identity
+security and management of other Sessions remain outside this CLI surface.
 
 User API Keys accept WorkspaceKnowledge/ProjectTasks arrays without UserAccount
 or Session-only administration. A Key’s ProjectTasks.project admits only read. Use
@@ -87,14 +72,9 @@ excluded. Tokens have optional expiry and can be revoked. They never enter the
 Session credential store. The old Project Token and its environment variable are
 retired.
 
-Personal GitHub metadata requires `UserAccount` targeting `self` with
-`githubAccount: ["read"]`; authorization and disconnect use their separate
-`authorize` and `disconnect` actions. Personal notification preferences use
-`notificationPreference: ["read"]` or `["update"]`. Inbox read, bulk mark-read and
-clear use `notification: ["read"]`, `["update"]` and `["delete"]` respectively.
-Private target content additionally needs its business read grant. UserAccount
-never authorizes another User, upstream identity security or other Session
-management, and API Keys cannot request it.
+Personal GitHub authorization and notification commands act as the same current
+User. GitHub OAuth remains a separate normal browser authorization. API Keys and
+Workspace read-only Tokens do not gain personal account capabilities.
 
 ## Operating contract
 
@@ -113,7 +93,7 @@ management, and API Keys cannot request it.
   never grants access: use the fresh target returned by `notification read
   --notification-id <uuid> --idempotency-key <uuid>` before navigating. `notification
   read-all` and `notification clear` require an explicit UUID command key and a
-  `UserAccount` notification update/delete grant respectively; clear only when the
+  current User authority; clear only when the
   User requests it. Retain the key
   after an ambiguous outcome so retrying cannot change newer entries. Read category
   preferences with `notification preferences get`; update only requested fields
@@ -128,8 +108,7 @@ management, and API Keys cannot request it.
   Adds and removals take an explicit UUID command key; retain it after an ambiguous
   outcome. Removal also takes the association's opaque expected version. Read
   reverse Task references through `spec work-items`, following its cursor when
-  present. Both endpoints require current access in the same Workspace and Session
-  scope. A link records reference metadata and leaves Task completion, Spec
+  present. Both endpoints require current access in the same Workspace and current User authority. A link records reference metadata and leaves Task completion, Spec
   publication, and external content authorization independent.
 
 - Use `specflow project list` before choosing a Project; never infer a hidden current
@@ -139,8 +118,7 @@ management, and API Keys cannot request it.
   workspace create --name <name> --prefix <prefix>` when the User asks for a new container. Select one
   Workspace's Projects with `specflow project list --workspace-id <workspaceId>` —
   an explicit, stateless filter combinable with `--status`; an unknown or
-  inaccessible Workspace returns an empty list, and a Session approved for a
-  Project subset never lists Projects outside that scope.
+  inaccessible Workspace returns an empty list, and discovery reflects the current User membership and Role.
 - Administer Workspace membership and Roles only when the User asks. `specflow
   workspace member list|search|add|set-role|remove` governs who holds access —
   `search` reads the identity directory and `add` provisions the selected User

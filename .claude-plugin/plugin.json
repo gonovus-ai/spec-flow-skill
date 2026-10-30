@@ -11,6 +11,6 @@
     "specifications",
     "glossary"
   ],
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Author and govern authoritative Specs and the Workspace Glossary through the supported SpecFlow CLI."
 }

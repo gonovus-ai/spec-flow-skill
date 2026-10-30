@@ -1,7 +1,7 @@
 ---
 name: specflow
 description: Author and govern authoritative Specs and the Workspace Glossary through the supported SpecFlow CLI.
-compatible-cli: "@gonovus-ai/spec-flow-cli@0.4.0"
+compatible-cli: "@gonovus-ai/spec-flow-cli@0.6.0"
 ---
 
 # SpecFlow
@@ -11,16 +11,16 @@ authentication or resource command, check whether `specflow` is installed and, w
 it is, run `specflow --version`.
 
 - If `specflow` is not installed, run only this exact installation command. If
-  installation fails, stop. Then run `specflow --version` again and require `0.4.0`:
+  installation fails, stop. Then run `specflow --version` again and require `0.6.0`:
 
 ```bash
-npm install --global @gonovus-ai/spec-flow-cli@0.4.0
+npm install --global @gonovus-ai/spec-flow-cli@0.6.0
 ```
 
 - If the installed version is different, stop and show the User that exact install
   command as the repair command. Do not run that repair command automatically or
   silently upgrade or downgrade an existing global installation.
-- If the installed version is `0.4.0`, continue without running the install command or
+- If the installed version is `0.6.0`, continue without running the install command or
   changing global state.
 - Do not replace the pinned version with `latest`, a raw HTTP command, or a private
   copy. Do not update the Skill or CLI automatically.
@@ -383,3 +383,157 @@ a 428 requires the current observed version, not waiting and retrying unchanged.
 Disabled Users, revoked or expired Sessions, Role downgrade, Project Archive, and
 stale expected versions are authoritative current-state failures. Do not reuse cached
 authority or silently broaden the credential's explicit grants.
+
+
+Connect 1–50 repositories atomically with one idempotency key:
+
+```bash
+specflow github connection connect-batch --project-id PROJECT_ID \
+  --repository owner/tasks:10:20 --repository owner/mobile:10:21 \
+  --outbound-repository-id 20 --idempotency-key UUID
+```
+
+Repeat `--repository owner/name:installationId:repositoryId` for each repository.
+Use `--no-outbound` to explicitly select none. Without either option, only the
+first repository of the Project's first batch becomes outbound; later batches
+only create from GitHub. A Project with an outbound repository cannot nominate
+another during connection. Workspace binding conflicts reject the whole batch.
+A real Web/CLI Session with current Workspace settings permission and personal
+GitHub administrator access to every repository is required. The single-repository
+`github connection connect` command remains available.
+
+## Responsibility, discussions and audit reads
+
+Use `spec owner read|candidates|assign|clear --workspace-id W --spec-id SPEC`
+when the User asks to inspect or change responsibility. Assignment requires an
+eligible candidate's `--user-id`; clearing is explicit. Both writes require the
+Owner read's `--expected-version` and a retained `--idempotency-key` UUID.
+Responsibility never grants access.
+
+Use `spec discussion targets` before starting or replying to a Scenario thread.
+Pass explicit Workspace/Spec IDs and `--context-kind Published|WorkingDraft`
+(default Published). Preserve allocated Scenario IDs and the selected target's
+`context.hash` as `--context-hash`; never invent them. Read paginated threads with
+`list` and comments with `comments --thread-id UUID`, following `nextCursor` via
+`--cursor` with the same view/filter. Use `start --scenario-id ID --context-hash HASH
+--content TEXT` or `reply --thread-id UUID --context-hash HASH --content TEXT`.
+On `SPEC_DISCUSSION_CONTEXT_CHANGED`, reread the selected view and deliberately
+reapply intent; never replace the hash silently.
+
+Use `edit-comment` or `delete-comment` only for the User's own comment, passing
+`--thread-id`, `--comment-id`, and that comment's observed version. Edits retain
+original context and deletion leaves a tombstone. `resolve` / `reopen` use the
+thread's observed version, independently of comment versions. Every discussion
+write requires the same retained UUID `--idempotency-key` for retries.
+
+Use `project rename --project-id ID --name NAME --expected-version VERSION
+--idempotency-key UUID` for an explicit rename request. It preserves identity and
+respects lifecycle restrictions. Read authorized audit pages with `project audit-log
+--project-id ID` or `workspace audit-log --workspace-id ID`, using `--limit 1..100`
+and `--cursor` for further pages. Preserve source and actor attribution in reports.
+
+## Shared task views, statistics, colors and personal tasks (ZTA-875/876/878)
+
+```sh
+specflow work-item view list --project-id PROJECT
+specflow work-item view save --project-id PROJECT --input '{"id":"UUID","name":"Mine","layout":"list","groupedByStatus":false,"filters":{"assignees":[],"customFields":{},"dueDates":[],"labels":[],"priorities":[],"search":"","sortBy":"number","sortOrder":"asc","statuses":[]}}'
+specflow work-item view save --project-id PROJECT --input '<complete view JSON without version>' --expected-version '"1"'
+specflow work-item statistics --project-id PROJECT --query '{"view":"list","assignee":"USER_ID","priority":"high,urgent"}'
+specflow workspace my-work-items --workspace-id WORKSPACE --limit 50 [--cursor CURSOR]
+specflow work-item-custom-field create --project-id PROJECT --name Risk --type dropdown --option High --option Low --option-colors '["danger",null]'
+specflow work-item-custom-field option-colors --project-id PROJECT --field-id FIELD --colors '["warning",null]' --expected-version '"1"' --idempotency-key UUID
+specflow work-item-custom-field option-colors --project-id PROJECT --field-id FIELD --clear --expected-version '"2"' --idempotency-key UUID
+```
+
+Views retain the existing board/list layout and complete filters, including optional
+`repositoryConnectionId`. Save omits the expected version only for a new ID.
+Identical immediate retries use the same ID, content and observed version; the
+server owns replay and stale-version behavior. No view Idempotency-Key is invented.
+Statistics returns the server aggregate, including trends at `overview.timeline`;
+there is no client page counting. Query accepts existing server selection keys:
+`view`, `repositoryConnectionId`, `assignee`, `customFields`, `due`, `dueAfter`,
+`dueBefore`, `label`, `priority`, `search`, `sortBy`, `sortOrder`, `startAfter`,
+`startBefore`, `status`. CSV and customFields JSON strings retain server semantics.
+Personal tasks returns `total`, Project `groups` and `nextCursor` from the current
+User's authorized unfinished tasks in Active Projects; retain the server cursor.
+Colors align one-to-one with dropdown options; null entries clear individual colors,
+`--clear` clears all. The server validates color values, lengths and field type.
+Assistant can discover views, statistics/trends, option colors and my unfinished
+Work Items. View and color writes wait for approval and retain version preconditions.
+
+## Local Screen image files (ZTA-881 CLI)
+
+```sh
+specflow map screen image-upload --workspace-id WORKSPACE --screen-id SCREEN --file ./image.png --content-type image/png --expected-version '"1"' --idempotency-key RESERVE_KEY --finalize-key FINALIZE_KEY
+specflow map screen image-download --workspace-id WORKSPACE --screen-id SCREEN --asset-id ASSET_UUID --output-file ./download.png
+```
+
+Upload reserves against the observed Screen version, validates the returned fresh
+HTTP(S) reservation, PUTs bytes without Session credentials or redirects, and
+finalizes using a separate retained key and the same version. Local files must be
+nonempty regular files of at most 10 MiB; server MIME/size checks still apply.
+Retain both phase keys and identical inputs after failures. Once finalized, a new
+reservation attempt with the old reserve key returns upload-expired; reread the
+Screen to resolve an ambiguous completion. Existing image-reserve/image-finalize/
+image-remove commands remain available for explicit phase control.
+Download accepts only authorized Workspace/Screen/asset identities, never an
+arbitrary URL, and creates a new owner-only file without overwriting existing files.
+Assistant image handling is outside this CLI slice.
+
+### Global object search
+
+Use `specflow search-global --query 'payment' --limit 20 [--cursor '<nextCursor>']`
+for tasks, Specs, Screens and Journeys across currently accessible resources.
+Preserve returned object identities and totalCount; follow nextCursor with the
+same query for complete results. No type filter is supported. Dedicated
+`specflow spec search` still searches published Spec content only.
+
+## Work Item automation (ZTA-911, CLI 0.6.0)
+
+Existing commands keep full JSON by default. Use `--output summary` for Work Item
+create/read/update/assign/list and relation create/list to omit descriptions while
+retaining IDs, versions, permissions, cursors and replay receipts. Grouped pages
+are summarized too. Summary does not fetch further pages. `relation: null` remains
+null. Unsupported summary commands reject before sending a mutation.
+
+Work Item `url` is the server-authorized SpecFlow page URL; `githubIssue.url` remains
+the external GitHub URL. Do not construct links from the API origin. An older server
+that omits `url` still yields a successful business result with one stderr warning.
+
+```sh
+specflow auth whoami
+specflow work-item create --project-id PROJECT --title 'Prepare release' --assignee me --description-file ./release.md --output summary
+cat ./release.md | specflow work-item update --project-id PROJECT --work-item-id GON-78 --expected-version '"3"' --description-file - --output summary
+specflow work-item subtask link --project-id PROJECT --parent GON-78 --child GON-79 --child-project-id OTHER_PROJECT --idempotency-key KEY
+```
+
+`auth whoami` returns `{ user: { id }, credentialKind }` for the selected Session or
+User API Key (`session` or `api-key`). `--assignee me` on create/assign resolves that
+same credential once, without printing the intermediate identity. Read-only Tokens
+cannot resolve `me`; filters and bulk assignment accept User IDs only. Explicit
+credential failure never falls back to another credential. Older servers without
+the identity route require an upgrade or an explicit User ID.
+
+Descriptions accept exactly one of inline `--description`, `--description-file`
+(regular UTF-8 file, or `-` for explicit piped stdin), and update's
+`--clear-description` (null). Omission leaves update unchanged and preserves create's
+default. No shell expansion or Markdown parsing occurs. Empty/whitespace content,
+invalid UTF-8, nonregular files and input above 80,000 bytes are rejected locally;
+text must contain 1–20,000 UTF-16 code units after trimming. Interactive stdin is
+rejected: pipe the text or select a file.
+
+Subtask source is always parent and target is child. `subtask link` defaults to
+summary; `--project-id` owns the parent and `--child-project-id` defaults to it.
+The existing `relation create --type subtask` remains available:
+
+```sh
+specflow work-item relation create --project-id PROJECT --work-item-id GON-78 --target-project-id PROJECT --target-work-item-id GON-79 --type subtask --idempotency-key KEY
+```
+
+Retain the same relation key and body after an uncertain response; full/summary
+never change server intent. Create retains its automatically generated key within
+one invocation. Transport retries reuse that key and body once; version conflicts
+never fetch a newer version and overwrite automatically. Honor `retryAfter` on 429.
+`LOCAL_OUTPUT_FAILED` means local formatting/output failed after possible server
+success: read the resource before deliberately retrying. It never permits a blind
+write retry. Diagnostics stay on stderr and stdout remains business JSON.

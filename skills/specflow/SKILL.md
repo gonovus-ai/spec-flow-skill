@@ -1,7 +1,7 @@
 ---
 name: specflow
 description: Author and govern authoritative Specs and the Workspace Glossary through the supported SpecFlow CLI.
-compatible-cli: "@gonovus-ai/spec-flow-cli@0.6.0"
+compatible-cli: "@gonovus-ai/spec-flow-cli@0.6.2"
 ---
 
 # SpecFlow
@@ -11,16 +11,16 @@ authentication or resource command, check whether `specflow` is installed and, w
 it is, run `specflow --version`.
 
 - If `specflow` is not installed, run only this exact installation command. If
-  installation fails, stop. Then run `specflow --version` again and require `0.6.0`:
+  installation fails, stop. Then run `specflow --version` again and require `0.6.2`:
 
 ```bash
-npm install --global @gonovus-ai/spec-flow-cli@0.6.0
+npm install --global @gonovus-ai/spec-flow-cli@0.6.2
 ```
 
 - If the installed version is different, stop and show the User that exact install
   command as the repair command. Do not run that repair command automatically or
   silently upgrade or downgrade an existing global installation.
-- If the installed version is `0.6.0`, continue without running the install command or
+- If the installed version is `0.6.2`, continue without running the install command or
   changing global state.
 - Do not replace the pinned version with `latest`, a raw HTTP command, or a private
   copy. Do not update the Skill or CLI automatically.
@@ -103,6 +103,9 @@ Workspace read-only Tokens do not gain personal account capabilities.
 
 - When the User asks to associate a Task with supporting resources, use
   `work-item resource-link list|add|remove` with explicit Project and Task identities.
+  For GitHub PR URLs, use `work-item github-link-pr` and verify the result with
+  `work-item github-links`. Choose `--role references` for supporting evidence or
+  `--role closes` for completion work. Ordinary resource links reject PR URLs.
   A `spec` target uses its stable `--spec-id` and required `--workspace-id`;
   `document` and `other` targets use a User-authored name and HTTP/HTTPS locator.
   Adds and removals take an explicit UUID command key; retain it after an ambiguous
@@ -446,7 +449,15 @@ specflow work-item-custom-field option-colors --project-id PROJECT --field-id FI
 ```
 
 Views retain the existing board/list layout and complete filters, including optional
-`repositoryConnectionId`. Save omits the expected version only for a new ID.
+`repositoryConnectionId`, plus an optional `display` object (null keeps defaults):
+`grouping` and `subgrouping` (`status`, `assignee`, `priority`, `label`, `dueDate`,
+`spec`, `none`), `completed` (`all`, `pastDay`, `pastWeek`, `pastMonth`, `none`),
+`showSubtasks`, `subtaskNesting` (`expanded`, `collapsed`), `showEmptyGroups`,
+`showCounts`, optional `orderCompletedByRecency` and `properties`. Save the complete
+display read from the view.
+`work-item list` and `work-item board` accept `--completed FILTER`; the default
+`all` keeps completed Work Items, and `hiddenCompleted` reports per final status
+how many the filter hid. List and board items carry `completedAt`. Save omits the expected version only for a new ID.
 Identical immediate retries use the same ID, content and observed version; the
 server owns replay and stale-version behavior. No view Idempotency-Key is invented.
 Statistics returns the server aggregate, including trends at `overview.timeline`;
@@ -537,3 +548,22 @@ never fetch a newer version and overwrite automatically. Honor `retryAfter` on 4
 `LOCAL_OUTPUT_FAILED` means local formatting/output failed after possible server
 success: read the resource before deliberately retrying. It never permits a blind
 write retry. Diagnostics stay on stderr and stdout remains business JSON.
+
+## Development branches
+
+Before creating a branch for an approved Work Item, use the CLI branch-name
+command and create the Git branch using its returned `branchName` exactly:
+
+```sh
+specflow work-item branch-name --project-id PROJECT --work-item-id GON-78
+```
+
+This writes the branch claim on the server. Do not derive the branch name from
+the title yourself: Projects configure their branch template, and the exact claim
+links a subsequent PR even when its title has no Work Item number. Claiming the
+same branch again assigns it to the most recently selected Work Item. PR titles
+may identify multiple Work Items with complete IDs; PR bodies and comments do not
+associate Work Items. Use `work-item github-link-pr` for a manual PR association;
+`resource-link add --kind other` is for ordinary reference URLs and rejects GitHub
+pull-request URLs. Manual PR associations default to `closes`; `references`
+never changes Work Item status.

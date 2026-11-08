@@ -1,7 +1,7 @@
 ---
 name: specflow
 description: Author and govern authoritative Specs and the Workspace Glossary through the supported SpecFlow CLI.
-compatible-cli: "@gonovus-ai/spec-flow-cli@0.6.2"
+compatible-cli: "@gonovus-ai/spec-flow-cli@0.6.3"
 ---
 
 # SpecFlow
@@ -11,16 +11,16 @@ authentication or resource command, check whether `specflow` is installed and, w
 it is, run `specflow --version`.
 
 - If `specflow` is not installed, run only this exact installation command. If
-  installation fails, stop. Then run `specflow --version` again and require `0.6.2`:
+  installation fails, stop. Then run `specflow --version` again and require `0.6.3`:
 
 ```bash
-npm install --global @gonovus-ai/spec-flow-cli@0.6.2
+npm install --global @gonovus-ai/spec-flow-cli@0.6.3
 ```
 
 - If the installed version is different, stop and show the User that exact install
   command as the repair command. Do not run that repair command automatically or
   silently upgrade or downgrade an existing global installation.
-- If the installed version is `0.6.2`, continue without running the install command or
+- If the installed version is `0.6.3`, continue without running the install command or
   changing global state.
 - Do not replace the pinned version with `latest`, a raw HTTP command, or a private
   copy. Do not update the Skill or CLI automatically.
@@ -442,7 +442,12 @@ specflow work-item view list --project-id PROJECT
 specflow work-item view save --project-id PROJECT --input '{"id":"UUID","name":"Mine","layout":"list","groupedByStatus":false,"filters":{"assignees":[],"customFields":{},"dueDates":[],"labels":[],"priorities":[],"search":"","sortBy":"number","sortOrder":"asc","statuses":[]}}'
 specflow work-item view save --project-id PROJECT --input '<complete view JSON without version>' --expected-version '"1"'
 specflow work-item statistics --project-id PROJECT --query '{"view":"list","assignee":"USER_ID","priority":"high,urgent"}'
-specflow workspace my-work-items --workspace-id WORKSPACE --limit 50 [--cursor CURSOR]
+specflow workspace my-work-items --workspace-id WORKSPACE --limit 50 [--cursor CURSOR] [--query '{"scope":"created","project":"PAY,CHK","status":["In review",{"virtual":"planned"}],"completed":"pastWeek"}']
+specflow workspace my-work-items-statistics --workspace-id WORKSPACE [--query '<same selection>']
+specflow workspace my-work-items-filter-options --workspace-id WORKSPACE
+specflow workspace my-work-items-view list --workspace-id WORKSPACE
+specflow workspace my-work-items-view save --workspace-id WORKSPACE --view-id UUID --input '{"name":"Mine","layout":"board","position":0,"filters":{"scope":"assigned","projects":[],"assignees":[],"customFields":{},"dueDates":[],"labels":[],"priorities":[],"search":"","sortBy":"dueDate","sortOrder":"asc","statuses":[]},"display":null}' [--expected-version 1]
+specflow workspace my-work-items-view delete --workspace-id WORKSPACE --view-id UUID --expected-version 2
 specflow work-item-custom-field create --project-id PROJECT --name Risk --type dropdown --option High --option Low --option-colors '["danger",null]'
 specflow work-item-custom-field option-colors --project-id PROJECT --field-id FIELD --colors '["warning",null]' --expected-version '"1"' --idempotency-key UUID
 specflow work-item-custom-field option-colors --project-id PROJECT --field-id FIELD --clear --expected-version '"2"' --idempotency-key UUID
@@ -465,8 +470,14 @@ there is no client page counting. Query accepts existing server selection keys:
 `view`, `repositoryConnectionId`, `assignee`, `customFields`, `due`, `dueAfter`,
 `dueBefore`, `label`, `priority`, `search`, `sortBy`, `sortOrder`, `startAfter`,
 `startBefore`, `status`. CSV and customFields JSON strings retain server semantics.
-Personal tasks returns `total`, Project `groups` and `nextCursor` from the current
-User's authorized unfinished tasks in Active Projects; retain the server cursor.
+My Work Items reads the current User's work in every readable Active Project as one
+`workItems` page in a global order, with `nextCursor` and `hiddenCompleted`; retain the
+server cursor. `scope` is `assigned` (default) or `created`; `completed` defaults to
+`none` (unfinished work). Statuses are merged names (same-named columns across
+Projects are one status) and `customFields` keys are `type:name`. Statistics and
+filter options use the same selection. Personal views belong to the caller alone;
+`--view-id` is a new UUID or a built-in id (`assigned`, `created`, `due-this-week`)
+whose saved row overrides that built-in view.
 Colors align one-to-one with dropdown options; null entries clear individual colors,
 `--clear` clears all. The server validates color values, lengths and field type.
 Assistant can discover views, statistics/trends, option colors and my unfinished
@@ -567,3 +578,41 @@ associate Work Items. Use `work-item github-link-pr` for a manual PR association
 `resource-link add --kind other` is for ordinary reference URLs and rejects GitHub
 pull-request URLs. Manual PR associations default to `closes`; `references`
 never changes Work Item status.
+
+## Delivery and acceptance (ADR 0143)
+
+Merging enters delivery rather than completing a Work Item. CI or signed GitHub
+successful deployment status records releases; manual completion requires a User
+with `workItem:update` to accept an In QA Work Item. Return requires a reason and
+moves it to In Progress, recording the reason as a comment. Acceptance is attributed
+to the authenticated human, including when an Agent acts on that User's behalf.
+Automation changes require `project:update` and replace the complete settings.
+
+```sh
+specflow work-item delivery --project-id PROJECT --work-item-id PAY-1 --json
+specflow work-item accept --project-id PROJECT --work-item-id PAY-1 --expected-version '"7"' --idempotency-key UUID
+specflow work-item return --project-id PROJECT --work-item-id PAY-1 --reason 'Missing acceptance criterion' --expected-version '"7"' --idempotency-key UUID
+specflow work-item release --project-id PROJECT --work-item-id PAY-1 --environment staging --released-at 2026-11-08T00:00:00Z --expected-version '"7"' --idempotency-key UUID
+specflow project work-item-automation read --project-id PROJECT
+specflow project work-item-automation update --project-id PROJECT --input '<complete settings JSON>' --expected-version '"1"' --idempotency-key UUID
+specflow work-item transfer-preview --project-id PROJECT --work-item-id PAY-1 --destination-project-id TARGET
+specflow work-item location --project-id PROJECT --work-item-id PAY-1
+```
+
+All commands emit JSON and accept `--json`. Release time defaults to current UTC;
+when retrying a CI command, retain its original timestamp, UUID and observed version.
+Read the Work Item version with `work-item read`; automation read returns its own
+version. Use the `settings` object alone as automation update input. Settings include
+review/merge columns, ordered branch rules, testing/production environments,
+completion mode and automatic archive configuration. A null column means no move.
+
+Assistant and MCP expose `readWorkItemAutomation`, `updateWorkItemAutomation`,
+`readWorkItemDelivery`, `recordWorkItemAcceptance`, `recordWorkItemRelease`,
+`previewWorkItemTransfer` and `resolveWorkItemLocation`. Reads execute as reads.
+Assistant writes require the conversation owner's approval; MCP uses existing
+OAuth authority and routine `call_write`, original version preconditions and native
+idempotency receipts. No additional connector admission reservation is needed.
+The release operation reports an already successful release, like other explicit
+integration commands; it does not deploy or impersonate a GitHub webhook. Only
+report an actual release requested by the User. No automatic acceptance follows a
+merge; production-mode completion is a separate Project setting.

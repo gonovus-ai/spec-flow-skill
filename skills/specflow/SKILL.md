@@ -11,14 +11,20 @@ compatible-cli: "^1.0.0"
 
 ## Preflight
 
-Before authentication or resource commands, check whether `specflow` is installed.
-If it is missing, run exactly this bootstrap command. Stop if installation fails.
+Before authentication or resource commands, run `node --version`. The CLI runs on
+Node.js 24 only. Continue only when it succeeds and reports major version 24;
+otherwise, or when a `specflow` command fails on stderr with `Node.js 24 is required`,
+stop and ask the User to install Node.js 24. Installing or upgrading the CLI does
+not fix this, so do not retry those steps.
+
+Then check whether `specflow` is installed. If it is missing, run exactly this
+bootstrap command. Stop if installation fails.
 
 ```bash
 npm install --global @gonovus-ai/spec-flow-cli@1.0.0
 ```
 
-Run `specflow version --json --skill-version 0.6.0 --compatible-cli "^1.0.0"`. If
+Run `specflow version --json --skill-version 0.6.1 --compatible-cli "^1.0.0"`. If
 the CLI rejects the `version` command or one of its options, fall back to
 `specflow --version` and compare it with `^1.0.0` yourself.
 

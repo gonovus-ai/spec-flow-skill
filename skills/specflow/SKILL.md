@@ -1,7 +1,7 @@
 ---
 name: specflow
 description: Author and govern authoritative Specs and the Workspace Glossary through the supported SpecFlow CLI.
-compatible-cli: "@gonovus-ai/spec-flow-cli@0.6.3"
+compatible-cli: "@gonovus-ai/spec-flow-cli@0.7.0"
 ---
 
 # SpecFlow
@@ -11,16 +11,16 @@ authentication or resource command, check whether `specflow` is installed and, w
 it is, run `specflow --version`.
 
 - If `specflow` is not installed, run only this exact installation command. If
-  installation fails, stop. Then run `specflow --version` again and require `0.6.3`:
+  installation fails, stop. Then run `specflow --version` again and require `0.7.0`:
 
 ```bash
-npm install --global @gonovus-ai/spec-flow-cli@0.6.3
+npm install --global @gonovus-ai/spec-flow-cli@0.7.0
 ```
 
 - If the installed version is different, stop and show the User that exact install
   command as the repair command. Do not run that repair command automatically or
   silently upgrade or downgrade an existing global installation.
-- If the installed version is `0.6.3`, continue without running the install command or
+- If the installed version is `0.7.0`, continue without running the install command or
   changing global state.
 - Do not replace the pinned version with `latest`, a raw HTTP command, or a private
   copy. Do not update the Skill or CLI automatically.
@@ -36,6 +36,8 @@ resource command:
 specflow auth login
 specflow project list
 ```
+
+Tell the User to click Approve in the browser.
 
 The resulting independently revocable CLI Session belongs to the User and uses
 all of that User's current SpecFlow permissions. No Workspace, Project, resource,
@@ -113,6 +115,22 @@ Workspace read-only Tokens do not gain personal account capabilities.
   reverse Task references through `spec work-items`, following its cursor when
   present. Both endpoints require current access in the same Workspace and current User authority. A link records reference metadata and leaves Task completion, Spec
   publication, and external content authorization independent.
+
+- Task creation automatically watches as creator and initial assignee. Use
+  `work-item create --initial-watcher-ids '["USER_ID"]'` to select initial watchers;
+  an explicit array omitting yourself (including `[]`) records your unwatch tombstone.
+  Commenting and new mentions enroll participants without clearing tombstones;
+  explicit watching or a fresh assignment restores watching. Progress notifications
+  exclude the actor and follow current effective watchers and personal preferences.
+- Manage Task watchers with `work-item watchers`, `work-item watcher-candidates`,
+  `work-item watch`, and `work-item unwatch`. Read effective watchers with
+  `work-item watchers --project-id <id> --work-item-id <taskId>`. In an Active
+  Project, watching or unwatching yourself (`--idempotency-key <uuid>`, omitting
+  `--user-id` or passing `me`) requires `workItem:read` on an interactive CLI
+  Session; listing candidates (`work-item watcher-candidates --project-id <id>`) or
+  adding/removing another enabled Workspace member (`--user-id <userId>`) requires
+  `workItem:update`. Retain `--idempotency-key` after an uncertain response. Watcher
+  changes do not take `--expected-version` or advance Task version.
 
 - Use `specflow project list` before choosing a Project; never infer a hidden current
   Project. Every newly created Project belongs to exactly one owning Workspace, and
@@ -467,21 +485,29 @@ Identical immediate retries use the same ID, content and observed version; the
 server owns replay and stale-version behavior. No view Idempotency-Key is invented.
 Statistics returns the server aggregate, including trends at `overview.timeline`;
 there is no client page counting. Query accepts existing server selection keys:
-`view`, `repositoryConnectionId`, `assignee`, `customFields`, `due`, `dueAfter`,
+`view`, `repositoryConnectionId`, `assignee`, `watcher`, `customFields`, `due`, `dueAfter`,
 `dueBefore`, `label`, `priority`, `search`, `sortBy`, `sortOrder`, `startAfter`,
 `startBefore`, `status`. CSV and customFields JSON strings retain server semantics.
 My Work Items reads the current User's work in every readable Active Project as one
 `workItems` page in a global order, with `nextCursor` and `hiddenCompleted`; retain the
-server cursor. `scope` is `assigned` (default) or `created`; `completed` defaults to
+server cursor. `scope` is `assigned` (default), `created`, or `watched`; `completed` defaults to
 `none` (unfinished work). Statuses are merged names (same-named columns across
-Projects are one status) and `customFields` keys are `type:name`. Statistics and
+Projects are one status) and `customFields` keys are `type:name`. `watcher` accepts
+User ids or `me`; set `operators.watchers` to `include` or `exclude`. Statistics and
 filter options use the same selection. Personal views belong to the caller alone;
-`--view-id` is a new UUID or a built-in id (`assigned`, `created`, `due-this-week`)
+`--view-id` is a new UUID or a built-in id (`assigned`, `created`, `watched`, `due-this-week`)
 whose saved row overrides that built-in view.
 Colors align one-to-one with dropdown options; null entries clear individual colors,
 `--clear` clears all. The server validates color values, lengths and field type.
 Assistant can discover views, statistics/trends, option colors and my unfinished
 Work Items. View and color writes wait for approval and retain version preconditions.
+
+Connector also exposes My Work Items queries, personal views and display overrides.
+Supply the explicit Workspace path parameter for personal operations; they act as
+the connected User. Use call_read for reads, call_write for saves and display PUT,
+and delete_resource for view deletion and display clearing. Versioned view mutations
+use at-most-once admission; inspect current state after an uncertain outcome.
+Display replacement and clearing are naturally idempotent.
 
 ## Local Screen image files (ZTA-881 CLI)
 
@@ -616,3 +642,56 @@ The release operation reports an already successful release, like other explicit
 integration commands; it does not deploy or impersonate a GitHub webhook. Only
 report an actual release requested by the User. No automatic acceptance follows a
 merge; production-mode completion is a separate Project setting.
+
+### Work Item selection and view settings
+
+`work-item list`, `board` and `export` share these additional flags:
+`--creator USER_ID` (repeatable), `--operators JSON`, `--created FILTER`,
+`--updated FILTER`, `--relations CSV`, `--specs CSV`, and `--pull-requests CSV`.
+Both `--assignee me` and `--creator me` resolve the current credential's User.
+Saved views retain `me` as a symbolic current-viewer token.
+
+Operators are a JSON object mapping `created`, `updated`, `statuses`, `assignees`, `creators`,
+`priorities`, `labels`, `projects` (My Work Items), `dueDates`, `relations`, `specs`,
+`pullRequests`, or `customField:<fieldId>` to `include` or `exclude`. Omitted means
+include. Values match any within a category; categories AND together; exclude
+means none of the selected values. There are no condition groups.
+
+Created/updated filters are `today`, `pastWeek`, `past2Weeks`, `pastMonth`,
+`past3Months`, or `YYYY-MM-DD` (on/after inclusive UTC midnight). Relations are
+`blocked`, `blocking`, `hasParent`, `hasChildren`, `related`. Specs use linked Spec
+IDs or `none`. PR states are `none`, `draft`, `open`, `merged`, `closed`, evaluated
+from synchronized active associations without a GitHub request. Added sort keys
+are `status`, `startDate`, `updatedAt`, `assignee`; existing sorts remain supported.
+Statistics and My Work Items `--query` accept the same camelCase wire parameters
+(`operators` is a JSON-encoded string, array categories are CSV strings).
+
+Saved filters use `operators`, `created`, `updated`, `relations`, `specs`, and
+`pullRequests` directly, with array categories as JSON arrays. Display grouping
+adds `creator`, `startDate`, `parent` and `customField:<fieldId>`; only dropdown and
+multi-select fields have option groups. A `multi-select` field value is a JSON
+string array of declared options. Personal views use merged `type:name` keys.
+
+A Project view's optional `visibility` is `project` (default) or `private`.
+Readers can create private views, only the creator can read/change/delete them,
+and shared writes require task update permission. Copy by saving a fresh UUID
+without an expected version. Delete a non-built-in view with
+`work-item view delete --project-id ID --view-id UUID --expected-version VERSION`.
+
+`work-item view display read|save|clear --project-id ID --view-id UUID` manages
+only the caller's display override. Save takes `--input '<display JSON>'`.
+`workspace my-work-items-view display read|save|clear --workspace-id ID --view-id ID`
+does the same for personal views, including built-ins. Clear restores the view
+settings; saving the view itself changes its default. Filters are never stored in
+the display override. Reauthorize every operation; a view grants no task access.
+
+### Work Item comment thread read projections
+
+`work-item thread list|show` returns the API JSON unchanged, including `generation`,
+`anchorState`, `anchorStart` and `anchorEnd`. Attached description threads carry
+opaque endpoint tokens that only the Web editor resolves; never decode or rewrite
+them. Describe a thread's passage with `quote` and `anchorState`, and treat a
+`generation` other than the current description generation as historical.
+Detached/general threads return null endpoints. Discussion state
+activities expose an optional explicit `threadId`; historical events without it
+have no thread target. Imported GitHub flat comments also expose their thread ID.

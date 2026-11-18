@@ -26,6 +26,8 @@ for manifest in .claude-plugin/plugin.json .codex-plugin/plugin.json; do
 done
 
 if [[ "${mode}" == "release" ]]; then
+  grep -Fx "claude plugin marketplace add gonovus-ai/spec-flow-skill#stable" "${source_root}/README.md"
+  grep -Fx "codex plugin marketplace add gonovus-ai/spec-flow-skill --ref stable" "${source_root}/README.md"
   grep -Fx "claude plugin marketplace add gonovus-ai/spec-flow-skill#${release_tag}" "${source_root}/README.md"
   grep -Fx "claude plugin install specflow@specflow" "${source_root}/README.md"
   grep -Fx "codex plugin marketplace add gonovus-ai/spec-flow-skill --ref ${release_tag}" "${source_root}/README.md"

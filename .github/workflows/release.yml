@@ -75,6 +75,12 @@ jobs:
         run: |
           set -euo pipefail
 
+          existing_release="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${RELEASE_TAG}" \
+            --jq 'select(.immutable == true and .draft == false) | .id' 2>/dev/null || true)"
+          if [[ -n "${existing_release}" ]]; then
+            exit 0
+          fi
+
           release_url="$(gh api --method POST \
             "repos/${GITHUB_REPOSITORY}/releases" \
             -f tag_name="${RELEASE_TAG}" \
@@ -88,3 +94,20 @@ jobs:
             echo "Release immutability is not enabled" >&2
             exit 1
           fi
+
+      - name: Advance stable to the verified release
+        env:
+          GH_TOKEN: ${{ secrets.SKILL_RELEASE_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh auth setup-git
+          # A rerun of an older release must not move stable backwards: when the
+          # verified commit is already in stable's history there is nothing to do.
+          if git fetch --no-tags origin "+refs/heads/stable:refs/remotes/origin/stable"; then
+            if git merge-base --is-ancestor "${GITHUB_SHA}" refs/remotes/origin/stable; then
+              echo "stable already contains ${RELEASE_TAG}"
+              exit 0
+            fi
+          fi
+          git push origin "${GITHUB_SHA}:refs/heads/stable"

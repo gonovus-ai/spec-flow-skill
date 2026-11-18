@@ -18,8 +18,16 @@ skill_body() {
 }
 skill_name="$(sed -n 's/^name: //p' "${skill_path}")"
 skill_description="$(sed -n 's/^description: //p' "${skill_path}")"
-compatible_cli="$(sed -n 's/^compatible-cli: "\(.*\)"$/\1/p' "${skill_path}")"
-test -n "${skill_name}" && test -n "${skill_description}" && test -n "${compatible_cli}"
+bootstrap="$(jq -er '.cliBootstrapVersion | strings' "${source_root}/skills/release.json")"
+compatible_range="$(jq -er '.compatibleCliRange | strings' "${source_root}/skills/release.json")"
+[[ "${bootstrap}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
+compatible_cli="@gonovus-ai/spec-flow-cli@${bootstrap}"
+test -n "${skill_name}" && test -n "${skill_description}"
+test "$(sed -n 's/^bootstrap-cli: "\(.*\)"$/\1/p' "${skill_path}")" = "${compatible_cli}"
+test "$(sed -n 's/^compatible-cli: "\(.*\)"$/\1/p' "${skill_path}")" = "${compatible_range}"
+test -n "${compatible_range//[[:space:]]/}"
+npm exec --yes --package=semver@7.8.5 -- semver -r "${compatible_range}" "${bootstrap}"
+test "$(npm view "${compatible_cli}" version --registry https://registry.npmjs.org)" = "${bootstrap}"
 
 if [[ "${mode}" == "release" ]]; then
   grep -Fx "gh skill install gonovus-ai/spec-flow-skill specflow@${release_tag} --agent codex --scope user" "${source_root}/README.md"
@@ -88,8 +96,10 @@ for installer in gh-skill npx-skills; do
     test -f "${installed_skill}"
     grep -Fx "name: ${skill_name}" "${installed_skill}"
     grep -Fx "description: ${skill_description}" "${installed_skill}"
+    installed_bootstrap_cli="$(sed -n 's/^bootstrap-cli: //p' "${installed_skill}" | tr -d "'\"")"
+    test "${installed_bootstrap_cli}" = "${compatible_cli}"
     installed_compatible_cli="$(sed -n 's/^compatible-cli: //p' "${installed_skill}" | tr -d "'\"")"
-    test "${installed_compatible_cli}" = "${compatible_cli}"
+    test "${installed_compatible_cli}" = "${compatible_range}"
     cmp <(skill_body "${skill_path}") <(skill_body "${installed_skill}")
 
     installed_dir="${installed_skill%/SKILL.md}"

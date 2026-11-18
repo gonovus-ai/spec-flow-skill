@@ -36,3 +36,24 @@ if [[ "${protected_tags}" != "true" ]]; then
   echo "Unbypassable Skill release tag immutability ruleset is missing" >&2
   exit 1
 fi
+
+# Plugin marketplaces follow stable, so it may only ever fast-forward and never disappear.
+protected_stable=false
+while IFS= read -r ruleset_id; do
+  ruleset="$(gh api "repos/${repository_name}/rulesets/${ruleset_id}")"
+  if jq -e '
+    .target == "branch" and .enforcement == "active" and
+    (.conditions.ref_name.include | index("refs/heads/stable")) != null and
+    ((.conditions.ref_name.exclude // []) | index("refs/heads/stable")) == null and
+    (.bypass_actors | length == 0) and
+    ([.rules[].type] | contains(["deletion", "non_fast_forward"]))' \
+    <<<"${ruleset}" >/dev/null; then
+    protected_stable=true
+    break
+  fi
+done < <(gh api "repos/${repository_name}/rulesets?per_page=100" --jq '.[].id')
+
+if [[ "${protected_stable}" != "true" ]]; then
+  echo "Stable branch ruleset blocking deletion and force pushes is missing" >&2
+  exit 1
+fi

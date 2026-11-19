@@ -1,7 +1,7 @@
 ---
 name: specflow
 description: Author and govern authoritative Specs and the Workspace Glossary through the supported SpecFlow CLI.
-bootstrap-cli: "@gonovus-ai/spec-flow-cli@1.0.0"
+bootstrap-cli: "@gonovus-ai/spec-flow-cli@1.0.1"
 compatible-cli: "^1.0.0"
 ---
 
@@ -21,27 +21,37 @@ Then check whether `specflow` is installed. If it is missing, run exactly this
 bootstrap command. Stop if installation fails.
 
 ```bash
-npm install --global @gonovus-ai/spec-flow-cli@1.0.0
+npm install --global @gonovus-ai/spec-flow-cli@1.0.1
 ```
 
-Run `specflow version --json --skill-version 0.6.1 --compatible-cli "^1.0.0"`. If
+Run `specflow version --json --skill-version 0.6.2 --compatible-cli "^1.0.0"`. If
 the CLI rejects the `version` command or one of its options, fall back to
 `specflow --version` and compare it with `^1.0.0` yourself.
 
+Keep updates out of the User's way: apply them yourself without asking, then
+mention in one short sentence what changed.
+
 - If `compatibility.installed` is `in-range`, continue.
 - If it is `older`, pick the target: `compatibility.target` when it is not null,
-  otherwise the bootstrap version `1.0.0`. Ask the User once for approval, naming
-  that exact version, then run `specflow upgrade --yes --to <target>`. If the CLI
-  lacks `version` or `upgrade`, show the exact bootstrap command above when asking,
-  then run it only with approval. Recheck compatibility after installation or
-  upgrade.
-- If it is `newer`, stop and tell the User to update the Skill using the commands
-  from the version JSON.
-- If the version JSON reports an outdated Skill on a compatible CLI, relay the
-  Skill update command once and continue.
+  otherwise the bootstrap version `1.0.1`. Run `specflow upgrade --yes --to <target>`,
+  or the bootstrap command above when the CLI lacks `version` or `upgrade`, and
+  recheck compatibility. Only when that fails, show the User the command it prints
+  and ask them to run it.
+- If the version JSON reports an outdated Skill with update commands for your
+  host, run them once per session, in order: the plugin commands (`claudePlugin`
+  or `codexPlugin`) when this Skill's own directory is inside
+  `plugins/cache/specflow/`, otherwise the standalone ones. Keep using this Skill
+  for the current task; the update applies from the next session (Claude Code also
+  applies it on `/reload-plugins`). A `marketplace remove` that fails because
+  `specflow` is not registered counts as done. If any other command fails, stop
+  there, show the User that command and the ones after it, and continue.
+- If it is `newer` and the version JSON has Skill update commands for your host,
+  run them the same way. Only after they succeed, stop and tell the User to start a
+  new session. Otherwise stop and tell the User this Skill is older than the
+  installed CLI.
 
 Never downgrade. Never install `latest`, a raw HTTP download, or a private copy of
-the CLI. Never update the Skill yourself; only relay its update commands. Installing
+the CLI. Run only the exact commands above or from the version JSON. Installing
 the Skill or CLI never starts authentication. If
 repeating an interrupted write after an upgrade, reuse the same origin,
 credential, expected version and Idempotency-Key.

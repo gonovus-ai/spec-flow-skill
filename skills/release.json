@@ -1,6 +1,6 @@
 {
-  "skillVersion": "0.7.0",
+  "skillVersion": "0.8.0",
   "skillsInstallerVersion": "1.5.23",
-  "cliBootstrapVersion": "1.1.0",
-  "compatibleCliRange": "^1.1.0"
+  "cliBootstrapVersion": "1.2.0",
+  "compatibleCliRange": "^1.2.0"
 }

@@ -1,8 +1,8 @@
 ---
 name: specflow
 description: Author and govern authoritative Specs, the Workspace Glossary, and Context Documents (规范) with their Guardrails (护栏) and boards (画板) through the supported SpecFlow CLI. Use it to read what applies to a repository before coding and to draft or draw architecture for human review.
-bootstrap-cli: "@gonovus-ai/spec-flow-cli@1.2.0"
-compatible-cli: "^1.2.0"
+bootstrap-cli: "@gonovus-ai/spec-flow-cli@1.3.0"
+compatible-cli: "^1.3.0"
 ---
 
 # SpecFlow
@@ -21,19 +21,19 @@ Then check whether `specflow` is installed. If it is missing, run exactly this
 bootstrap command. Stop if installation fails.
 
 ```bash
-npm install --global @gonovus-ai/spec-flow-cli@1.2.0
+npm install --global @gonovus-ai/spec-flow-cli@1.3.0
 ```
 
-Run `specflow version --json --skill-version 0.8.0 --compatible-cli "^1.2.0"`. If
+Run `specflow version --json --skill-version 0.9.0 --compatible-cli "^1.3.0"`. If
 the CLI rejects the `version` command or one of its options, fall back to
-`specflow --version` and compare it with `^1.2.0` yourself.
+`specflow --version` and compare it with `^1.3.0` yourself.
 
 Keep updates out of the User's way: apply them yourself without asking, then
 mention in one short sentence what changed.
 
 - If `compatibility.installed` is `in-range`, continue.
 - If it is `older`, pick the target: `compatibility.target` when it is not null,
-  otherwise the bootstrap version `1.2.0`. Run `specflow upgrade --yes --to <target>`,
+  otherwise the bootstrap version `1.3.0`. Run `specflow upgrade --yes --to <target>`,
   or the bootstrap command above when the CLI lacks `version` or `upgrade`, and
   recheck compatibility. Only when that fails, show the User the command it prints
   and ask them to run it.
@@ -76,7 +76,7 @@ an upgrade, reuse the same origin, credential, expected version and Idempotency-
   server accepted a command.
 <!-- cli-boundary:end -->
 
-- The Skill is not a task workflow, orchestration service, or durable Agent session.
+- This Skill runs one-shot CLI operations; for durable Work Item assignment workers use `specflow agent run` (see `agent-sessions` guide).
 - Discover Workspace and Project identities explicitly. Never infer a hidden current
   Project or derive a Project ID from a task number. Read current state before
   acting and use the observed opaque expected version for versioned writes.

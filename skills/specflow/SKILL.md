@@ -1,8 +1,8 @@
 ---
 name: specflow
 description: Author and govern authoritative Specs, the Workspace Glossary, Context Documents (规范) with their Guardrails (护栏) and boards (画板), and Workspace Discussions (讨论) through the supported SpecFlow CLI. Use it to read what applies to a repository before coding, participate in human+Agent discussions, draft or draw architecture for human review, and plan, track and seal delivery Versions (版本).
-bootstrap-cli: "@gonovus-ai/spec-flow-cli@1.5.0"
-compatible-cli: "^1.5.0"
+bootstrap-cli: "@gonovus-ai/spec-flow-cli@1.5.1"
+compatible-cli: "^1.5.1"
 ---
 
 # SpecFlow
@@ -21,19 +21,19 @@ Then check whether `specflow` is installed. If it is missing, run exactly this
 bootstrap command. Stop if installation fails.
 
 ```bash
-npm install --global @gonovus-ai/spec-flow-cli@1.5.0
+npm install --global @gonovus-ai/spec-flow-cli@1.5.1
 ```
 
-Run `specflow version --json --skill-version 0.11.1 --compatible-cli "^1.5.0"`. If
+Run `specflow version --json --skill-version 0.11.2 --compatible-cli "^1.5.1"`. If
 the CLI rejects the `version` command or one of its options, fall back to
-`specflow --version` and compare it with `^1.5.0` yourself.
+`specflow --version` and compare it with `^1.5.1` yourself.
 
 Keep updates out of the User's way: apply them yourself without asking, then
 mention in one short sentence what changed.
 
 - If `compatibility.installed` is `in-range`, continue.
 - If it is `older`, pick the target: `compatibility.target` when it is not null,
-  otherwise the bootstrap version `1.5.0`. Run `specflow upgrade --yes --to <target>`,
+  otherwise the bootstrap version `1.5.1`. Run `specflow upgrade --yes --to <target>`,
   or the bootstrap command above when the CLI lacks `version` or `upgrade`, and
   recheck compatibility. Only when that fails, show the User the command it prints
   and ask them to run it.

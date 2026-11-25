@@ -11,6 +11,6 @@
     "specifications",
     "glossary"
   ],
-  "version": "0.11.1",
+  "version": "0.11.2",
   "description": "Author and govern authoritative Specs, the Workspace Glossary, Context Documents (规范) with their Guardrails (护栏) and boards (画板), and Workspace Discussions (讨论) through the supported SpecFlow CLI. Use it to read what applies to a repository before coding, participate in human+Agent discussions, draft or draw architecture for human review, and plan, track and seal delivery Versions (版本)."
 }

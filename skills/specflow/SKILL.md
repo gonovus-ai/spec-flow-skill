@@ -1,8 +1,8 @@
 ---
 name: specflow
 description: Author and govern authoritative Specs, the Workspace Glossary, Context Documents (规范) with their Guardrails (护栏) and boards (画板), and Workspace Discussions (讨论) through the supported SpecFlow CLI. Use it to read what applies to a repository before coding, participate in human+Agent discussions, and draft or draw architecture for human review.
-bootstrap-cli: "@gonovus-ai/spec-flow-cli@1.4.0"
-compatible-cli: "^1.4.0"
+bootstrap-cli: "@gonovus-ai/spec-flow-cli@1.4.1"
+compatible-cli: "^1.4.1"
 ---
 
 # SpecFlow
@@ -21,19 +21,19 @@ Then check whether `specflow` is installed. If it is missing, run exactly this
 bootstrap command. Stop if installation fails.
 
 ```bash
-npm install --global @gonovus-ai/spec-flow-cli@1.4.0
+npm install --global @gonovus-ai/spec-flow-cli@1.4.1
 ```
 
-Run `specflow version --json --skill-version 0.10.0 --compatible-cli "^1.4.0"`. If
+Run `specflow version --json --skill-version 0.10.1 --compatible-cli "^1.4.1"`. If
 the CLI rejects the `version` command or one of its options, fall back to
-`specflow --version` and compare it with `^1.4.0` yourself.
+`specflow --version` and compare it with `^1.4.1` yourself.
 
 Keep updates out of the User's way: apply them yourself without asking, then
 mention in one short sentence what changed.
 
 - If `compatibility.installed` is `in-range`, continue.
 - If it is `older`, pick the target: `compatibility.target` when it is not null,
-  otherwise the bootstrap version `1.4.0`. Run `specflow upgrade --yes --to <target>`,
+  otherwise the bootstrap version `1.4.1`. Run `specflow upgrade --yes --to <target>`,
   or the bootstrap command above when the CLI lacks `version` or `upgrade`, and
   recheck compatibility. Only when that fails, show the User the command it prints
   and ask them to run it.
@@ -134,7 +134,7 @@ Run `specflow guide` to list topics and `specflow --help` for command discovery.
 - `glossary` covers Published vocabulary, terminology conflicts, and Glossary drafts.
 - `errors` covers Skill Errors, stale versions, and uncertain outcomes.
 - `discussions-audit` covers Spec responsibility, Scenario threads, and audit history.
-- `work-items` covers Task links, watchers, automation, views, filters, and comments.
+- `work-items` covers writing Tasks (Bug, Requirement, Technical task), links, watchers, automation, views, filters, and comments.
 - `delivery` covers development branches, releases, acceptance, and transfers.
 - `map-and-screens` covers the Product Map, screen placement, and local Screen and Task assets.
 - `workspace-admin` covers authentication (`auth whoami`), Workspace/Project administration, API Keys, Workspace read-only Tokens, public Task sharing, notifications, and integrations.

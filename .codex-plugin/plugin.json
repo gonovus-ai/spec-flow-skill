@@ -21,6 +21,6 @@
       "Write"
     ]
   },
-  "version": "0.9.0",
-  "description": "Author and govern authoritative Specs, the Workspace Glossary, and Context Documents (规范) with their Guardrails (护栏) and boards (画板) through the supported SpecFlow CLI. Use it to read what applies to a repository before coding and to draft or draw architecture for human review."
+  "version": "0.10.0",
+  "description": "Author and govern authoritative Specs, the Workspace Glossary, Context Documents (规范) with their Guardrails (护栏) and boards (画板), and Workspace Discussions (讨论) through the supported SpecFlow CLI. Use it to read what applies to a repository before coding, participate in human+Agent discussions, and draft or draw architecture for human review."
 }

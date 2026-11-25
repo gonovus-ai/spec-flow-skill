@@ -33,12 +33,12 @@ Use the release tag when you need to reproduce an installation. If the marketpla
 is already registered, remove it before re-adding it at the pinned ref.
 
 ```bash
-claude plugin marketplace add gonovus-ai/spec-flow-skill#skill-v0.9.0
+claude plugin marketplace add gonovus-ai/spec-flow-skill#skill-v0.10.0
 claude plugin install specflow@specflow
 ```
 
 ```bash
-codex plugin marketplace add gonovus-ai/spec-flow-skill --ref skill-v0.9.0
+codex plugin marketplace add gonovus-ai/spec-flow-skill --ref skill-v0.10.0
 codex plugin add specflow@specflow
 ```
 
@@ -48,17 +48,17 @@ Install SpecFlow for Codex at user scope from this exact release with either
 supported installer:
 
 ```bash
-gh skill install gonovus-ai/spec-flow-skill specflow@skill-v0.9.0 --agent codex --scope user
-npx --yes skills@1.5.23 add https://github.com/gonovus-ai/spec-flow-skill/tree/skill-v0.9.0/skills/specflow --global --agent codex --yes
+gh skill install gonovus-ai/spec-flow-skill specflow@skill-v0.10.0 --agent codex --scope user
+npx --yes skills@1.5.23 add https://github.com/gonovus-ai/spec-flow-skill/tree/skill-v0.10.0/skills/specflow --global --agent codex --yes
 ```
 
 Install the same release for Claude Code at user scope:
 
 ```bash
-gh skill install gonovus-ai/spec-flow-skill specflow@skill-v0.9.0 --agent claude-code --scope user
-npx --yes skills@1.5.23 add https://github.com/gonovus-ai/spec-flow-skill/tree/skill-v0.9.0/skills/specflow --global --agent claude-code --yes
+gh skill install gonovus-ai/spec-flow-skill specflow@skill-v0.10.0 --agent claude-code --scope user
+npx --yes skills@1.5.23 add https://github.com/gonovus-ai/spec-flow-skill/tree/skill-v0.10.0/skills/specflow --global --agent claude-code --yes
 ```
 
-Source: `gonovus-ai/spec-flow@28bbe3c2d743948cd2c1a8f3af1f088c9abc28a9`
+Source: `gonovus-ai/spec-flow@d1ed5555598a164150615bd1a3412c265b58b8bc`
 
-Release: `skill-v0.9.0`
+Release: `skill-v0.10.0`

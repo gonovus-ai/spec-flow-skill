@@ -1,0 +1,67 @@
+name: Jerome public PR relay
+
+on:
+  pull_request_target:
+    types: [review_requested, synchronize, ready_for_review, reopened]
+  workflow_run:
+    workflows: ["*", "!Jerome public PR relay"]
+    types: [completed]
+
+# 公共端只运行下面固定的转交脚本；不检出 PR，也没有模型或评审写凭据。
+permissions: {}
+
+jobs:
+  relay:
+    name: Jerome public PR relay
+    if: >-
+      github.repository == 'gonovus-ai/spec-flow-skill' &&
+      (
+        (github.event_name == 'pull_request_target' &&
+         github.event.pull_request.state == 'open' &&
+         github.event.pull_request.draft == false &&
+         github.event.pull_request.user.login != 'jeromebear' &&
+         (github.event.action != 'review_requested' ||
+          github.event.requested_reviewer.login == 'jeromebear')) ||
+        (github.event_name == 'workflow_run' &&
+         github.event.workflow_run.name != 'Jerome public PR relay')
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch fixed metadata to private ops
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          # 新建窄令牌，只允许 private ops 的 Actions:write；不得复用现有评审凭据。
+          github-token: ${{ secrets.OPS_ACTIONS_DISPATCH_TOKEN }}
+          script: |
+            const payload = context.payload;
+            if (context.repo.owner !== "gonovus-ai" || context.repo.repo !== "spec-flow-skill" ||
+                payload.repository?.id !== 1352489108 || payload.repository?.private !== false) {
+              throw new Error("Unexpected public relay repository");
+            }
+            let inputs;
+            if (context.eventName === "pull_request_target") {
+              const kind = payload.action;
+              const pr = payload.pull_request;
+              if (!["review_requested", "synchronize", "ready_for_review", "reopened"].includes(kind) ||
+                  pr?.state !== "open" || pr?.draft !== false || pr?.user?.login === "jeromebear" ||
+                  (kind === "review_requested" && payload.requested_reviewer?.login !== "jeromebear")) {
+                return;
+              }
+              if (!Number.isSafeInteger(pr.number) || pr.number < 1) throw new Error("Invalid PR number");
+              inputs = {kind, pr_number: String(pr.number)};
+            } else if (context.eventName === "workflow_run") {
+              const run = payload.workflow_run;
+              if (payload.action !== "completed" || run?.status !== "completed" ||
+                  run.name === "Jerome public PR relay" ||
+                  String(run.path || "").split("@")[0] === ".github/workflows/public-pr-review-relay.yml") {
+                return;
+              }
+              if (!Number.isSafeInteger(run.id) || run.id < 1) throw new Error("Invalid CI run ID");
+              inputs = {kind: "ci_completed", ci_run_id: String(run.id)};
+            } else {
+              return;
+            }
+            await github.rest.actions.createWorkflowDispatch({
+              owner: "gonovus-ai", repo: "ops", workflow_id: "public-pr-review.yml", ref: "main", inputs,
+            });

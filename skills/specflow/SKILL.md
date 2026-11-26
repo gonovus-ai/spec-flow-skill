@@ -1,8 +1,8 @@
 ---
 name: specflow
 description: Author and govern authoritative Specs, the Workspace Glossary, Context Documents (规范) with their Guardrails (护栏) and boards (画板), and Workspace Discussions (讨论) through the supported SpecFlow CLI. Use it to read what applies to a repository before coding, participate in human+Agent discussions, draft or draw architecture for human review, and plan, track and seal delivery Versions (版本).
-bootstrap-cli: "@gonovus-ai/spec-flow-cli@2.0.1"
-compatible-cli: "^2.0.1"
+bootstrap-cli: "@gonovus-ai/spec-flow-cli@2.1.0"
+compatible-cli: "^2.1.0"
 ---
 
 # SpecFlow
@@ -21,19 +21,19 @@ Then check whether `specflow` is installed. If it is missing, run exactly this
 bootstrap command. Stop if installation fails.
 
 ```bash
-npm install --global @gonovus-ai/spec-flow-cli@2.0.1
+npm install --global @gonovus-ai/spec-flow-cli@2.1.0
 ```
 
-Run `specflow version --json --skill-version 0.12.1 --compatible-cli "^2.0.1"`. If
+Run `specflow version --json --skill-version 0.12.2 --compatible-cli "^2.1.0"`. If
 the CLI rejects the `version` command or one of its options, fall back to
-`specflow --version` and compare it with `^2.0.1` yourself.
+`specflow --version` and compare it with `^2.1.0` yourself.
 
 Keep updates out of the User's way: apply them yourself without asking, then
 mention in one short sentence what changed.
 
 - If `compatibility.installed` is `in-range`, continue.
 - If it is `older`, pick the target: `compatibility.target` when it is not null,
-  otherwise the bootstrap version `2.0.1`. Run `specflow upgrade --yes --to <target>`,
+  otherwise the bootstrap version `2.1.0`. Run `specflow upgrade --yes --to <target>`,
   or the bootstrap command above when the CLI lacks `version` or `upgrade`, and
   recheck compatibility. Only when that fails, show the User the command it prints
   and ask them to run it.
@@ -79,8 +79,8 @@ an upgrade, reuse the same origin, credential, expected version and Idempotency-
 - This Skill runs one-shot CLI operations; for durable Work Item assignment workers use `specflow agent run` (see `agent-sessions` guide).
 - Discover Workspace and Project identities explicitly. Never infer a hidden current Project or
   derive a Project ID from a task number. Read current state first and use its opaque expected
-  version for writes; keep one Idempotency-Key and input per logical write. After an uncertain
-  result or a Temporary Failure, reread; if the write did not land, retry with the same key and input.
+  version for writes; keep one Idempotency-Key and input per logical write. After an uncertain result
+  or Temporary Failure, reread; if it did not land, retry with the same key (never a fresh one) and input.
 - Request explicit User confirmation immediately before any Spec Publish or Rollback,
   Glossary Publish or Rollback, Context Document Publish, Rollback, draft discard or
   state change (also any `--discard-draft`), board replace or deleteBoard, or Version
